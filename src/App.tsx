@@ -1,4 +1,5 @@
-import { motion } from 'motion/react';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -9,10 +10,53 @@ import {
   Play,
   Timer,
   User,
-  Utensils
+  Utensils,
+  Star,
+  Quote,
+  ChevronDown
 } from 'lucide-react';
 
+const faqs = [
+  { question: "Vou ter que pagar por atualizações futuras?", answer: "Não, o seu pagamento único garante acesso vitalício a todas as melhorias e novas funcionalidades lançadas." },
+  { question: "Funciona no Mac ou Celular?", answer: "Sim, o BodyComp é 100% em nuvem. Você pode acessar de qualquer dispositivo (Mac, Windows, iOS ou Android) pelo navegador." },
+  { question: "Meus dados e dos pacientes estão seguros?", answer: "Sim, utilizamos segurança de ponta (criptografia a nível bancário) e adequação total à LGPD, mantendo o controle em suas mãos." },
+  { question: "Como recebo o acesso?", answer: "Imediatamente por e-mail após a confirmação do pagamento, com instruções de login e suporte." },
+  { question: "Tem garantia?", answer: "Sim, 7 dias de garantia incondicional. Se a ferramenta não acelerar sua rotina, devolvemos seu dinheiro na hora." },
+];
+
+function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggleOpen: () => void }) {
+  return (
+    <div className="border border-surface-variant bg-surface rounded-xl overflow-hidden mb-3 md:mb-4 transition-all">
+      <button 
+        onClick={toggleOpen} 
+        className="w-full flex items-center justify-between p-4 md:p-6 text-left focus:outline-none"
+      >
+        <span className="font-headline-md text-base md:text-lg text-on-surface font-medium pr-4">{faq.question}</span>
+        <div className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          <ChevronDown className="w-5 h-5 text-on-surface-variant" />
+        </div>
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <div className="p-4 md:p-6 pt-0 font-body-sm text-on-surface-variant">
+              {faq.answer}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function App() {
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
       {/* TopNavBar */}
@@ -67,14 +111,14 @@ export default function App() {
                 <BadgeCheck className="text-secondary w-4 h-4 md:w-5 md:h-5" />
                 <span className="font-label-caps text-[10px] md:text-label-caps text-on-surface-variant uppercase tracking-wider">A Revolução na Prática Clínica</span>
               </div>
-              <h1 className="font-headline-xl text-4xl md:text-5xl lg:text-5xl xl:text-headline-xl text-on-surface leading-tight tracking-tight">
-                BodyComp,<br className="hidden sm:block"/> 
+              <h1 className="font-headline-xl text-4xl md:text-5xl lg:text-5xl xl:text-headline-xl text-on-surface leading-tight tracking-tight max-w-4xl mx-auto">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-secondary animate-gradient-x">
-                  o seu software de nutrição
-                </span>
+                  O Software de Nutrição Completo.
+                </span><br />
+                Sem Mensalidades, Para Sempre.
               </h1>
-              <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant max-w-2xl">
-                Automatize processos complexos, foque no atendimento humano e eleve a precisão clínica com o software definitivo para nutricionistas de alta performance.
+              <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant max-w-3xl">
+                Automatize processos complexos, foque no atendimento e tenha acesso vitalício ao software definitivo para nutricionistas de alta performance com um único pagamento.
               </p>
               
               <div className="space-y-4 pt-4 flex flex-col items-center w-full">
@@ -87,6 +131,34 @@ export default function App() {
                   <CircleCheck className="text-secondary w-4 h-4 shrink-0 hidden sm:block" />
                   <span>Pagamento Único. Sem Mensalidades. Satisfação garantida.</span>
                 </p>
+              </div>
+
+              {/* Mockup */}
+              <div className="w-full max-w-4xl mx-auto mt-12 md:mt-16 relative group cursor-pointer hover:scale-[1.02] transition-transform duration-500">
+                 <div className="aspect-[16/10] w-full bg-slate-50/50 backdrop-blur-sm rounded-t-xl md:rounded-t-2xl border-4 border-b-0 border-slate-200/60 shadow-2xl flex flex-col overflow-hidden relative">
+                    <div className="w-full h-4 sm:h-6 bg-slate-200/80 border-b border-slate-300/50 flex items-center px-4 shrink-0">
+                      <div className="flex space-x-1.5">
+                        <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                        <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
+                        <div className="w-2 h-2 rounded-full bg-green-400"></div>
+                      </div>
+                    </div>
+                    <div className="flex-1 w-full bg-white relative overflow-hidden">
+                      <img 
+                        src="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.png" 
+                        alt="Interface do BodyComp" 
+                        className="w-full h-full object-cover object-top"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                          target.onerror = null;
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent mix-blend-overlay"></div>
+                    </div>
+                 </div>
+                 {/* Keyboard bottom line */}
+                 <div className="h-4 sm:h-6 w-[105%] -ml-[2.5%] bg-slate-300/80 rounded-b-xl shadow-lg border-t border-slate-400/30 shrink-0"></div>
               </div>
             </motion.div>
           </div>
@@ -219,11 +291,23 @@ export default function App() {
               transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
               className="order-2 md:order-1 relative"
             >
-              <img 
-                alt="Nutricionista em consultório moderno sorrindo enquanto atende paciente" 
-                className="rounded-xl shadow-2xl object-cover h-64 sm:h-[400px] md:h-[500px] w-full"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRvVgXFNB0OtmC-klNofZkNaAkOBsNgSavyvCAuLGGuFgnADMyQi8VkcCfGmoPQznAoHQvf0ECN2Hh5wftIq5e9tmEJmqLAtLTnk0fLnR03vCZWg1GoOjOjZM45SohBShfAhaY-r0c6bYzDy5XXekkkhw6gJwokb4Op9F2bDSHLjIUsdeMvG4BRNKyX9yRudqdiYjdg0BESGn24uA47AXCxXY-mvVVAFiOi_rIgETrj6Qw3H9IbCYZmtLwjZd_5PR8JPvUIfmn1g3C"
-              />
+              <div className="rounded-xl shadow-2xl overflow-hidden border border-surface-variant bg-surface relative group">
+                <img 
+                  alt="Print Real do Software BodyComp" 
+                  className="object-cover md:object-contain h-64 sm:h-[400px] md:h-[500px] w-full bg-slate-50 transition-transform duration-700 group-hover:scale-105"
+                  src="https://i.postimg.cc/QCvMLLsv/Captura-de-tela-2026-05-07-180456.png"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                    target.onerror = null;
+                  }}
+                />
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-6 pointer-events-none">
+                  <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-md">
+                    <span className="font-label-caps text-xs text-white uppercase tracking-wider">Interface Real do BodyComp</span>
+                  </div>
+                </div>
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-xl pointer-events-none"></div>
             </motion.div>
             <motion.div 
@@ -265,6 +349,81 @@ export default function App() {
           </div>
         </section>
 
+        {/* Prova Social Section */}
+        <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 flex flex-col items-center">
+              <span className="inline-flex items-center space-x-1 px-3 py-1 bg-green-100 text-green-800 rounded-full font-label-caps text-xs uppercase tracking-wider mb-4 font-bold">
+                <Star className="w-3 h-3 fill-current" />
+                <Star className="w-3 h-3 fill-current" />
+                <Star className="w-3 h-3 fill-current" />
+                <Star className="w-3 h-3 fill-current" />
+                <Star className="w-3 h-3 fill-current" />
+              </span>
+              <h2 className="font-headline-lg text-3xl md:text-4xl text-on-surface mb-4">O que dizem os Nutricionistas de Alta Performance</h2>
+              <p className="font-body-lg text-base md:text-lg text-on-surface-variant max-w-2xl">
+                Junte-se aos profissionais que já se libertaram das mensalidades abusivas e faturam mais.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Testimonial 1 */}
+              <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
+                <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
+                <div className="flex space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                </div>
+                <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
+                  "Eu pagava mais de R$ 900 por ano em um software que eu usava só 30%. O BodyComp me impressionou: visual moderno, anamnese super completa e não tem mensalidade alguma. Paguei em 1 consulta e já recuperei o investimento."
+                </p>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center font-bold text-primary">DR</div>
+                  <div>
+                    <h4 className="font-headline-md text-sm md:text-base text-on-surface">Dra. Roberta Almeida</h4>
+                    <p className="font-body-sm text-xs text-on-surface-variant">Nutricionista Esportiva</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial 2 */}
+              <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
+                <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
+                <div className="flex space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                </div>
+                <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
+                  "A economia de tempo na hora de montar a dieta do paciente na frente dele é o grande diferencial. O paciente sai encantado com os materiais que gero em PDF. Sem dúvidas, o melhor custo x benefício do mercado atual."
+                </p>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center font-bold text-secondary">FC</div>
+                  <div>
+                    <h4 className="font-headline-md text-sm md:text-base text-on-surface">Felipe Costa</h4>
+                    <p className="font-body-sm text-xs text-on-surface-variant">Nutricionista Clínico</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Testimonial 3 */}
+              <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
+                <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
+                <div className="flex space-x-1 mb-4">
+                  {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                </div>
+                <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
+                  "Tinha receio de mudar de plataforma, mas o suporte foi perfeito. A gestão de horários automatizou minha agenda que era um caos. O fato de ser pagamento único, num software tão de ponta, ainda me deixa pasma."
+                </p>
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center font-bold text-blue-600">JS</div>
+                  <div>
+                    <h4 className="font-headline-md text-sm md:text-base text-on-surface">Juliana Silva</h4>
+                    <p className="font-body-sm text-xs text-on-surface-variant">Nutrição Materno-Infantil</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Oferta Irresistível */}
         <section className="py-16 md:py-24 bg-surface-container-lowest relative overflow-hidden" id="planos">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary-container/5 via-background to-background pointer-events-none"></div>
@@ -284,11 +443,19 @@ export default function App() {
               whileHover={{ scale: 1.02 }}
               className="glass-panel p-6 sm:p-10 rounded-2xl border border-primary-container/20 shadow-xl max-w-lg mx-auto bg-white/80"
             >
-              <div className="mb-6 md:mb-8 relative">
+              <div className="mb-6 md:mb-8 relative flex flex-col items-center">
                 <span className="absolute -top-6 -left-4 w-12 h-12 bg-primary/10 rounded-full blur-xl"></span>
                 <span className="absolute -bottom-4 -right-4 w-16 h-16 bg-secondary/10 rounded-full blur-xl"></span>
-                <span className="text-4xl md:text-5xl font-headline-xl text-on-surface font-bold relative z-10">R$ 97,90</span>
-                <span className="text-on-surface-variant font-body-sm text-sm md:text-body-sm ml-1 relative z-10">/único</span>
+                
+                {/* Ancoragem de Preço */}
+                <span className="text-on-surface-variant font-body-sm text-sm md:text-base relative z-10 mb-1">
+                  <s className="text-red-500/70 font-semibold">De R$ 1.198,00/ano</s> por apenas:
+                </span>
+                
+                <div className="flex items-baseline relative z-10">
+                  <span className="text-4xl md:text-5xl font-headline-xl text-on-surface font-bold">R$ 97,90</span>
+                  <span className="text-on-surface-variant font-body-sm text-sm md:text-body-sm ml-1">/único</span>
+                </div>
               </div>
               
               <ul className="text-left space-y-4 mb-8 font-body-sm text-body-sm text-on-surface">
@@ -317,6 +484,37 @@ export default function App() {
                 Risco zero: 7 dias de garantia incondicional de reembolso.
               </p>
             </motion.div>
+          </div>
+        </section>
+        {/* FAQ Section */}
+        <section className="py-16 md:py-24 bg-background border-t border-surface-variant" id="faq">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-10 md:mb-12">
+              <h2 className="font-headline-lg text-3xl md:text-4xl text-on-surface mb-4">Perguntas Frequentes</h2>
+              <p className="font-body-lg text-base md:text-lg text-on-surface-variant">
+                Tire suas dúvidas e garanta sua licença agora.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              {faqs.map((faq, index) => (
+                <FAQItem 
+                  key={index} 
+                  faq={faq} 
+                  isOpen={openFaqIndex === index} 
+                  toggleOpen={() => setOpenFaqIndex(openFaqIndex === index ? null : index)} 
+                />
+              ))}
+            </div>
+
+            <div className="mt-12 text-center bg-surface-container-lowest p-8 border border-primary-container/30 rounded-2xl">
+              <h3 className="font-headline-md text-xl mb-3 text-on-surface">Ainda tem dúvidas?</h3>
+              <p className="font-body-sm text-on-surface-variant mb-6">Não perca mais tempo pagando mensalidades.</p>
+              <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-primary text-on-primary font-button px-6 py-3 rounded-lg hover:bg-primary-fixed-variant transition-colors shadow-md text-base font-bold">
+                Aproveitar Oferta Única
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </a>
+            </div>
           </div>
         </section>
       </main>
