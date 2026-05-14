@@ -73,7 +73,7 @@ export default function App() {
             <a className="text-slate-600 font-medium hover:text-blue-500 transition-all duration-300 ease-in-out hover:opacity-80" href="#sobre">Sobre</a>
           </div>
           
-          <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="bg-primary text-on-primary font-button px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-primary-fixed-variant transition-colors shadow-sm inline-block text-xs sm:text-sm md:text-base font-bold whitespace-nowrap ml-4">
+          <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white font-button px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-green-600 transition-colors shadow-sm inline-block text-xs sm:text-sm md:text-base font-bold whitespace-nowrap ml-4 animate-cta-pulse">
             Garantir <span className="hidden sm:inline">Acesso</span>
           </a>
         </div>
@@ -122,7 +122,7 @@ export default function App() {
               </p>
               
               <div className="space-y-4 pt-4 flex flex-col items-center w-full">
-                <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="relative group bg-primary text-on-primary font-button px-4 py-4 md:px-8 md:py-4 rounded-lg hover:bg-primary-fixed-variant transition-colors shadow-lg hover:shadow-2xl w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 overflow-hidden">
+                <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="relative group bg-green-500 text-white font-button px-4 py-4 md:px-8 md:py-4 rounded-lg hover:bg-green-600 transition-colors shadow-lg hover:shadow-2xl w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 overflow-hidden animate-cta-pulse">
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
                   <span className="text-sm md:text-base text-center relative z-10">Sim, Quero Meu Acesso Vitalício Agora</span>
                   <ArrowRight className="w-5 h-5 hidden sm:block relative z-10 group-hover:translate-x-1 transition-transform" />
@@ -477,7 +477,7 @@ export default function App() {
                 </li>
               </ul>
               
-              <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="block text-center w-full bg-gradient-to-r from-primary to-blue-600 text-on-primary font-button py-4 rounded-lg hover:shadow-[0_10px_30px_rgba(0,82,255,0.3)] transition-all duration-300 transform hover:-translate-y-1 text-lg font-bold">
+              <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="block text-center w-full bg-gradient-to-r from-green-500 to-green-600 text-white font-button py-4 rounded-lg hover:shadow-[0_10px_30px_rgba(34,197,94,0.3)] transition-all duration-300 transform hover:-translate-y-1 text-lg font-bold animate-cta-pulse">
                 Garantir Minha Licença Vitalícia
               </a>
               <p className="mt-4 font-body-sm text-body-sm text-outline text-sm">
@@ -510,7 +510,7 @@ export default function App() {
             <div className="mt-12 text-center bg-surface-container-lowest p-8 border border-primary-container/30 rounded-2xl">
               <h3 className="font-headline-md text-xl mb-3 text-on-surface">Ainda tem dúvidas?</h3>
               <p className="font-body-sm text-on-surface-variant mb-6">Não perca mais tempo pagando mensalidades.</p>
-              <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-primary text-on-primary font-button px-6 py-3 rounded-lg hover:bg-primary-fixed-variant transition-colors shadow-md text-base font-bold">
+              <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-green-500 text-white font-button px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md text-base font-bold animate-cta-pulse">
                 Aproveitar Oferta Única
                 <ArrowRight className="ml-2 w-5 h-5" />
               </a>
