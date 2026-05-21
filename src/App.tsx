@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowRight,
@@ -24,18 +24,26 @@ const faqs = [
   { question: "Tem garantia?", answer: "Sim, 7 dias de garantia incondicional. Se a ferramenta não acelerar sua rotina, devolvemos seu dinheiro na hora." },
 ];
 
-function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggleOpen: () => void }) {
+function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggleOpen: () => void, key?: string | number }) {
   return (
     <div className="border border-surface-variant bg-surface rounded-xl overflow-hidden mb-3 md:mb-4 transition-all">
-      <button 
-        onClick={toggleOpen} 
-        className="w-full flex items-center justify-between p-4 md:p-6 text-left focus:outline-none"
+      <div 
+        role="button"
+        tabIndex={0}
+        onClick={toggleOpen}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            toggleOpen();
+          }
+        }}
+        className="w-full flex items-center justify-between p-4 md:p-6 text-left focus:outline-none cursor-pointer"
       >
         <span className="font-headline-md text-base md:text-lg text-on-surface font-medium pr-4">{faq.question}</span>
         <div className={`transform transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
           <ChevronDown className="w-5 h-5 text-on-surface-variant" />
         </div>
-      </button>
+      </div>
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -54,8 +62,33 @@ function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggl
   );
 }
 
+const mockupImages = [
+  "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.png",
+  "https://i.postimg.cc/3JXL7cKt/Captura-de-tela-2026-05-21-143421.png",
+  "https://i.postimg.cc/yYmfBbVp/Captura-de-tela-2026-05-21-143528.png",
+  "https://i.postimg.cc/qMsm05km/Captura-de-tela-2026-05-21-143637.png",
+  "https://i.postimg.cc/qMsm05kb/Captura-de-tela-2026-05-21-143659.png"
+];
+
 export default function App() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [currentMockupIndex, setCurrentMockupIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMockupIndex((prev) => {
+        const nextIndex = (prev + 1) % mockupImages.length;
+        if (scrollRef.current) {
+          const container = scrollRef.current;
+          const width = container.clientWidth;
+          container.scrollTo({ left: width * nextIndex, behavior: 'smooth' });
+        }
+        return nextIndex;
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
@@ -143,18 +176,42 @@ export default function App() {
                         <div className="w-2 h-2 rounded-full bg-green-400"></div>
                       </div>
                     </div>
-                    <div className="flex-1 w-full bg-white relative overflow-hidden">
-                      <img 
-                        src="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.png" 
-                        alt="Interface do BodyComp" 
-                        className="w-full h-full object-cover object-top"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
-                          target.onerror = null;
+                    <div className="flex-1 w-full bg-white relative overflow-hidden group">
+                      <div 
+                        ref={scrollRef}
+                        className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+                        onScroll={(e) => {
+                          const target = e.target as HTMLDivElement;
+                          const index = Math.round(target.scrollLeft / target.clientWidth);
+                          setCurrentMockupIndex(index);
                         }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent mix-blend-overlay"></div>
+                      >
+                        {mockupImages.map((src, idx) => (
+                          <div key={idx} className="w-full h-full shrink-0 relative snap-center">
+                            <img 
+                              src={src} 
+                              alt={`Interface do BodyComp ${idx + 1}`} 
+                              className="w-full h-full object-cover object-top"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                                target.onerror = null;
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent mix-blend-overlay pointer-events-none"></div>
+                      
+                      {/* Optional: Add navigation indicators */}
+                      <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10 pointer-events-none">
+                        {mockupImages.map((_, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`w-2 h-2 rounded-full transition-all duration-300 ${currentMockupIndex === idx ? 'bg-primary w-4' : 'bg-primary/30'}`}
+                          />
+                        ))}
+                      </div>
                     </div>
                  </div>
                  {/* Keyboard bottom line */}
