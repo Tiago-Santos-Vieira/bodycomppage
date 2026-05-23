@@ -63,11 +63,11 @@ function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggl
 }
 
 const mockupImages = [
-  "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.png",
-  "https://i.postimg.cc/3JXL7cKt/Captura-de-tela-2026-05-21-143421.png",
-  "https://i.postimg.cc/yYmfBbVp/Captura-de-tela-2026-05-21-143528.png",
-  "https://i.postimg.cc/qMsm05km/Captura-de-tela-2026-05-21-143637.png",
-  "https://i.postimg.cc/qMsm05kb/Captura-de-tela-2026-05-21-143659.png"
+  "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp",
+  "https://i.postimg.cc/3JXL7cKt/Captura-de-tela-2026-05-21-143421.webp",
+  "https://i.postimg.cc/yYmfBbVp/Captura-de-tela-2026-05-21-143528.webp",
+  "https://i.postimg.cc/qMsm05km/Captura-de-tela-2026-05-21-143637.webp",
+  "https://i.postimg.cc/qMsm05kb/Captura-de-tela-2026-05-21-143659.webp"
 ];
 
 export default function App() {
@@ -96,7 +96,7 @@ export default function App() {
       <nav className="sticky top-0 w-full z-50 bg-white font-['Space_Grotesk'] antialiased border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <a href="#" className="flex items-center shrink-0">
-            <img src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).png" alt="Body Comp Logo" className="h-[32px] sm:h-[45px] md:h-[57px] w-auto object-contain" />
+            <img fetchPriority="high" width="231" height="100" src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" alt="Body Comp Logo" className="h-[32px] sm:h-[45px] md:h-[57px] w-auto object-contain" />
           </a>
           
           <div className="hidden lg:flex items-center space-x-8">
@@ -192,9 +192,13 @@ export default function App() {
                               src={src} 
                               alt={`Interface do BodyComp ${idx + 1}`} 
                               className="w-full h-full object-cover object-top"
+                              fetchPriority={idx === 0 ? "high" : "auto"}
+                              loading={idx === 0 ? "eager" : "lazy"}
+                              width="1920"
+                              height="1080"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement;
-                                target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                                target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop&fm=webp";
                                 target.onerror = null;
                               }}
                             />
@@ -240,6 +244,7 @@ export default function App() {
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary via-blue-400 to-secondary opacity-30 blur-2xl group-hover:opacity-50 transition-opacity duration-500"></div>
                 {/* YouTube Video Embed */}
                 <iframe 
+                  loading="lazy"
                   className="absolute inset-0 w-full h-full rounded-2xl z-10"
                   src="https://www.youtube.com/embed/4jDG9i7AR1Q?autoplay=0&showinfo=0&rel=0&modestbranding=1" 
                   title="Apresentação do BodyComp" 
@@ -352,10 +357,13 @@ export default function App() {
                 <img 
                   alt="Print Real do Software BodyComp" 
                   className="object-cover md:object-contain h-64 sm:h-[400px] md:h-[500px] w-full bg-slate-50 transition-transform duration-700 group-hover:scale-105"
-                  src="https://i.postimg.cc/QCvMLLsv/Captura-de-tela-2026-05-07-180456.png"
+                  src="https://i.postimg.cc/QCvMLLsv/Captura-de-tela-2026-05-07-180456.webp"
+                  loading="lazy"
+                  width="1920"
+                  height="1080"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop";
+                    target.src = "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop&fm=webp";
                     target.onerror = null;
                   }}
                 />
@@ -580,7 +588,7 @@ export default function App() {
       <footer className="bg-white font-['Space_Grotesk'] text-sm w-full py-10 md:py-12 border-t border-slate-200 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left">
           <div className="flex flex-col space-y-4 items-center md:items-start">
-            <img src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).png" alt="Body Comp Logo" className="h-[38px] w-auto object-contain mb-1 md:mb-2" />
+            <img loading="lazy" width="231" height="100" src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" alt="Body Comp Logo" className="h-[38px] w-auto object-contain mb-1 md:mb-2" />
             <p className="text-slate-500">© 2026 Body Comp | Nutrição Inteligente. Todos os direitos reservados.</p>
           </div>
           <div className="flex flex-wrap gap-4 md:gap-6 justify-center md:justify-end">

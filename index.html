@@ -4,13 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BodyComp</title>
+    
+    <!-- Otimizacao Critical Render Path: Preload da imagem LCP (Mockup e Logo) -->
+    <link rel="preload" as="image" href="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).png" fetchpriority="high" />
+    <link rel="preload" as="image" href="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.png" fetchpriority="high" />
+
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Scripts de terceiros movidos para o final do body e com defer/async para nao bloquear renderizacao -->
     <script>
       window.pixelId = "6a0e046aae0123d733f13e48";
       var a = document.createElement("script");
       a.setAttribute("async", "");
       a.setAttribute("defer", "");
       a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-      document.head.appendChild(a);
+      document.body.appendChild(a);
     </script>
     <script
       src="https://cdn.utmify.com.br/scripts/utms/latest.js"
@@ -19,10 +30,6 @@
       async
       defer
     ></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
 
