@@ -9,6 +9,10 @@
     <link rel="preload" as="image" href="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" fetchpriority="high" />
     <link rel="preload" as="image" href="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp" fetchpriority="high" />
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
     <style>
       /* Critical CSS Inline */
       body { margin: 0; padding: 0; background-color: #fcfcfc; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
@@ -23,24 +27,30 @@
     
     <!-- Scripts de terceiros atrasados (Lazy execution) para baixar TBT -->
     <script>
-      window.onload = function() {
-        setTimeout(function() {
-          window.pixelId = "6a0e046aae0123d733f13e48";
-          var a = document.createElement("script");
-          a.setAttribute("async", "");
-          a.setAttribute("defer", "");
-          a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
-          document.body.appendChild(a);
+      function loadScripts() {
+        if (window.scriptsLoaded) return;
+        window.scriptsLoaded = true;
+        
+        window.pixelId = "6a0e046aae0123d733f13e48";
+        var a = document.createElement("script");
+        a.setAttribute("async", "true");
+        a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+        document.body.appendChild(a);
 
-          var b = document.createElement("script");
-          b.setAttribute("async", "");
-          b.setAttribute("defer", "");
-          b.setAttribute("src", "https://cdn.utmify.com.br/scripts/utms/latest.js");
-          b.setAttribute("data-utmify-prevent-xcod-sck", "");
-          b.setAttribute("data-utmify-prevent-subids", "");
-          document.body.appendChild(b);
-        }, 3000); // Executa somente 3s após o carregamento principal (Reduz carga inicial drasticamente)
-      };
+        var b = document.createElement("script");
+        b.setAttribute("async", "true");
+        b.setAttribute("src", "https://cdn.utmify.com.br/scripts/utms/latest.js");
+        b.setAttribute("data-utmify-prevent-xcod-sck", "");
+        b.setAttribute("data-utmify-prevent-subids", "");
+        document.body.appendChild(b);
+      }
+
+      ['scroll', 'mousemove', 'touchstart'].forEach(function(event) {
+        window.addEventListener(event, loadScripts, { once: true });
+      });
+      
+      // Fallback em 8 segundos
+      setTimeout(loadScripts, 8000);
     </script>
   </body>
 </html>
