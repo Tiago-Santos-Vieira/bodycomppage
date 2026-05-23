@@ -109,61 +109,35 @@ export default function BelowTheFold() {
       </section>
 
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden" id="sobre">
-        <div className="max-w-container-max-width mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-          <div className="order-2 md:order-1 relative">
-            <div className="rounded-xl shadow-2xl overflow-hidden border border-surface-variant bg-surface relative group">
-              <img 
-                alt="Print Real do Software BodyComp" 
-                className="object-cover md:object-contain h-64 sm:h-[400px] md:h-[500px] w-full bg-slate-50 transition-transform duration-700 group-hover:scale-105"
-                src="https://i.postimg.cc/QCvMLLsv/Captura-de-tela-2026-05-07-180456.webp"
-                loading="lazy"
-                width="1920"
-                height="1080"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('.png')) {
-                    target.src = target.src.replace('.webp', '.png');
-                  }
-                }}
-              />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent p-6 pointer-events-none">
-                <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md border border-white/20 rounded-md">
-                  <span className="font-label-caps text-xs text-white uppercase tracking-wider">Interface Real do BodyComp</span>
-                </div>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-6 md:space-y-8">
+          <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface">Poupança de Tempo. Fidelização Garantida.</h2>
+          <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant">
+            A verdadeira inteligência clínica não está apenas em calcular macros, mas em liberar seu tempo para o que realmente importa: a conexão humana com seu paciente.
+          </p>
+          <ul className="space-y-6 text-left max-w-2xl mx-auto">
+            <li className="flex items-start space-x-4">
+              <div className="mt-1 bg-primary-container/10 p-2 rounded-full shrink-0">
+                <Timer className="text-primary w-6 h-6" />
               </div>
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-xl pointer-events-none"></div>
-          </div>
-          <div className="order-1 md:order-2 space-y-6 md:space-y-8">
-            <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface">Poupança de Tempo. Fidelização Garantida.</h2>
-            <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant">
-              A verdadeira inteligência clínica não está apenas em calcular macros, mas em liberar seu tempo para o que realmente importa: a conexão humana com seu paciente.
-            </p>
-            <ul className="space-y-6">
-              <li className="flex items-start space-x-4">
-                <div className="mt-1 bg-primary-container/10 p-2 rounded-full shrink-0">
-                  <Timer className="text-primary w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-headline-md text-lg text-on-surface">Consultas mais Eficientes</h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                    Reduza o tempo de preenchimento de dados burocráticos em até 40%.
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start space-x-4">
-                <div className="mt-1 bg-secondary-container/20 p-2 rounded-full shrink-0">
-                  <Heart className="text-secondary w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-headline-md text-lg text-on-surface">Experiência Premium</h4>
-                  <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
-                    Entregue relatórios e prescrições visuais de alta qualidade que encantam e fidelizam.
-                  </p>
-                </div>
-              </li>
-            </ul>
-          </div>
+              <div>
+                <h4 className="font-headline-md text-lg text-on-surface">Consultas mais Eficientes</h4>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Reduza o tempo de preenchimento de dados burocráticos em até 40%.
+                </p>
+              </div>
+            </li>
+            <li className="flex items-start space-x-4">
+              <div className="mt-1 bg-secondary-container/20 p-2 rounded-full shrink-0">
+                <Heart className="text-secondary w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="font-headline-md text-lg text-on-surface">Experiência Premium</h4>
+                <p className="font-body-sm text-body-sm text-on-surface-variant mt-1">
+                  Entregue relatórios e prescrições visuais de alta qualidade que encantam e fidelizam.
+                </p>
+              </div>
+            </li>
+          </ul>
         </div>
       </section>
 
