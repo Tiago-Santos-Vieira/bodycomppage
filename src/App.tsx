@@ -66,7 +66,7 @@ export default function App() {
       <nav className="sticky top-0 w-full z-50 bg-white font-['Space_Grotesk'] antialiased border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
           <a href="#" className="flex items-center shrink-0">
-            <img fetchPriority="high" width="231" height="100" src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" alt="Body Comp Logo" className="h-[32px] sm:h-[45px] md:h-[57px] w-auto object-contain" />
+            <img fetchPriority="high" width="231" height="100" src="https://i.postimg.cc/ykrn0NNZ/Body-Comp-(2500-x-1080-px).png" alt="Body Comp Logo" className="h-[32px] sm:h-[45px] md:h-[57px] w-auto object-contain" />
           </a>
           
           <div className="hidden lg:flex items-center space-x-8">

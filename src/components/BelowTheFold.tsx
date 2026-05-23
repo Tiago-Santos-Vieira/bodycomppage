@@ -300,7 +300,7 @@ export default function BelowTheFold() {
       <footer className="bg-white font-['Space_Grotesk'] text-sm w-full py-10 md:py-12 border-t border-slate-200 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-2 gap-8 items-center text-center md:text-left">
           <div className="flex flex-col space-y-4 items-center md:items-start">
-            <img loading="lazy" width="231" height="100" src="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" alt="Body Comp Logo" className="h-[38px] w-auto object-contain mb-1 md:mb-2" />
+            <img loading="lazy" width="231" height="100" src="https://i.postimg.cc/ykrn0NNZ/Body-Comp-(2500-x-1080-px).png" alt="Body Comp Logo" className="h-[38px] w-auto object-contain mb-1 md:mb-2" />
             <p className="text-slate-500">© 2026 Body Comp | Nutrição Inteligente. Todos os direitos reservados.</p>
           </div>
           <div className="flex flex-wrap gap-4 md:gap-6 justify-center md:justify-end">
