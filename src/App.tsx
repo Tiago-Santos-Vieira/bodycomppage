@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
   ArrowRight,
   BadgeCheck,
@@ -44,20 +43,11 @@ function FAQItem({ faq, isOpen, toggleOpen }: { faq: any, isOpen: boolean, toggl
           <ChevronDown className="w-5 h-5 text-on-surface-variant" />
         </div>
       </div>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
-            <div className="p-4 md:p-6 pt-0 font-body-sm text-on-surface-variant">
-              {faq.answer}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="p-4 md:p-6 pt-0 font-body-sm text-on-surface-variant">
+          {faq.answer}
+        </div>
+      </div>
     </div>
   );
 }
@@ -116,29 +106,16 @@ export default function App() {
         {/* Hero Section */}
         <section className="relative pt-12 pb-16 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-surface-bright to-background">
           {/* Decorative background elements */}
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.1, 1],
-              rotate: [0, 90, 0],
-            }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          <div 
             className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-gradient-to-br from-primary-container/20 to-blue-200/20 rounded-full blur-3xl opacity-60 pointer-events-none z-0"
           />
-          <motion.div 
-            animate={{ 
-              scale: [1, 1.2, 1],
-              rotate: [0, -90, 0],
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          <div 
             className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] md:w-[600px] md:h-[600px] bg-gradient-to-tr from-secondary-container/20 to-green-100/20 rounded-full blur-3xl opacity-60 pointer-events-none z-0"
           />
 
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
-            <motion.div 
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-              className="space-y-6 md:space-y-8 flex flex-col items-center w-full"
+            <div 
+              className="space-y-6 md:space-y-8 flex flex-col items-center w-full animate-fade-in-up"
             >
               <div className="inline-flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded-full">
                 <BadgeCheck className="text-secondary w-4 h-4 md:w-5 md:h-5" />
@@ -221,18 +198,15 @@ export default function App() {
                  {/* Keyboard bottom line */}
                  <div className="h-4 sm:h-6 w-[105%] -ml-[2.5%] bg-slate-300/80 rounded-b-xl shadow-lg border-t border-slate-400/30 shrink-0"></div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
         {/* Vídeo de Apresentação Section */}
         <section className="pb-16 md:pb-24 pt-4 md:pt-8 bg-background relative z-20" id="apresentacao">
           <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.3 }}
+            <div 
+              className="animate-fade-in-up"
             >
               <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface mb-4">Veja o Body Comp em Ação</h2>
               <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant mb-8 md:mb-10 max-w-2xl mx-auto">
@@ -253,7 +227,7 @@ export default function App() {
                   allowFullScreen
                 ></iframe>
               </div>
-            </motion.div>
+            </div>
           </div>
         </section>
 
@@ -269,13 +243,8 @@ export default function App() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Feature 1 */}
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, type: "spring", bounce: 0.3, delay: 0.1 }}
-                whileHover={{ y: -5 }}
-                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group"
+              <div 
+                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group hover:-translate-y-1"
               >
                 <div className="w-14 h-14 rounded-lg bg-primary-container/10 flex items-center justify-center mb-6 group-hover:bg-primary-container/20 transition-colors">
                   <Calendar className="text-primary w-8 h-8" />
@@ -284,16 +253,11 @@ export default function App() {
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   Gestão inteligente de horários, confirmações automáticas e redução drástica de faltas.
                 </p>
-              </motion.div>
+              </div>
               
               {/* Feature 2 */}
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, type: "spring", bounce: 0.3, delay: 0.2 }}
-                whileHover={{ y: -5 }}
-                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group"
+              <div 
+                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group hover:-translate-y-1"
               >
                 <div className="w-14 h-14 rounded-lg bg-secondary-container/20 flex items-center justify-center mb-6 group-hover:bg-secondary-container/40 transition-colors">
                   <ClipboardList className="text-secondary w-8 h-8" />
@@ -302,16 +266,11 @@ export default function App() {
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   Colete dados clínicos de forma estruturada, com questionários personalizáveis pré-consulta.
                 </p>
-              </motion.div>
+              </div>
 
               {/* Feature 3 */}
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, type: "spring", bounce: 0.3, delay: 0.3 }}
-                whileHover={{ y: -5 }}
-                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group"
+              <div 
+                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group hover:-translate-y-1"
               >
                 <div className="w-14 h-14 rounded-lg bg-primary-container/10 flex items-center justify-center mb-6 group-hover:bg-primary-container/20 transition-colors">
                   <Utensils className="text-primary w-8 h-8" />
@@ -320,16 +279,11 @@ export default function App() {
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   Cálculos automáticos, banco de alimentos extenso e montagem visual intuitiva de cardápios.
                 </p>
-              </motion.div>
+              </div>
 
               {/* Feature 4 */}
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-50px" }}
-                transition={{ duration: 0.6, type: "spring", bounce: 0.3, delay: 0.4 }}
-                whileHover={{ y: -5 }}
-                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group"
+              <div 
+                className="bg-surface rounded-xl p-8 border border-surface-variant hover:shadow-lg transition-all group hover:-translate-y-1"
               >
                 <div className="w-14 h-14 rounded-lg bg-secondary-container/20 flex items-center justify-center mb-6 group-hover:bg-secondary-container/40 transition-colors">
                   <User className="text-secondary w-8 h-8" />
@@ -338,7 +292,7 @@ export default function App() {
                 <p className="font-body-sm text-body-sm text-on-surface-variant">
                   Registro preciso de antropometria, dobras cutâneas e bioimpedância com gráficos evolutivos.
                 </p>
-              </motion.div>
+              </div>
             </div>
           </div>
         </section>
@@ -346,11 +300,7 @@ export default function App() {
         {/* Benefícios Section */}
         <section className="py-16 md:py-24 bg-surface relative overflow-hidden" id="sobre">
           <div className="max-w-container-max-width mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-2 gap-10 md:gap-16 items-center">
-            <motion.div 
-              initial={{ opacity: 0, x: -40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
+            <div 
               className="order-2 md:order-1 relative"
             >
               <div className="rounded-xl shadow-2xl overflow-hidden border border-surface-variant bg-surface relative group">
@@ -374,12 +324,8 @@ export default function App() {
                 </div>
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-xl pointer-events-none"></div>
-            </motion.div>
-            <motion.div 
-              initial={{ opacity: 0, x: 40 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4, delay: 0.2 }}
+            </div>
+            <div 
               className="order-1 md:order-2 space-y-6 md:space-y-8"
             >
               <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface">Poupança de Tempo. Fidelização Garantida.</h2>
@@ -410,7 +356,7 @@ export default function App() {
                   </div>
                 </li>
               </ul>
-            </motion.div>
+            </div>
           </div>
         </section>
 
@@ -500,13 +446,8 @@ export default function App() {
               Chega de assinaturas mensais que corroem seu faturamento. Adquira o Body Comp com pagamento único e tenha acesso vitalício a todas as atualizações.
             </p>
             
-            <motion.div 
-              initial={{ opacity: 0, y: 40, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ duration: 0.8, type: "spring", bounce: 0.4 }}
-              whileHover={{ scale: 1.02 }}
-              className="glass-panel p-6 sm:p-10 rounded-2xl border border-primary-container/20 shadow-xl max-w-lg mx-auto bg-white/80"
+            <div 
+              className="glass-panel p-6 sm:p-10 rounded-2xl border border-primary-container/20 shadow-xl max-w-lg mx-auto bg-white/80 hover:scale-105 transition-transform duration-300"
             >
               <div className="mb-6 md:mb-8 relative flex flex-col items-center">
                 <span className="absolute -top-6 -left-4 w-12 h-12 bg-primary/10 rounded-full blur-xl"></span>
@@ -548,7 +489,7 @@ export default function App() {
               <p className="mt-4 font-body-sm text-body-sm text-outline text-sm">
                 Risco zero: 7 dias de garantia incondicional de reembolso.
               </p>
-            </motion.div>
+            </div>
           </div>
         </section>
         {/* FAQ Section */}
