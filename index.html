@@ -5,13 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BodyComp</title>
     
-    <!-- Otimizacao Critical Render Path: Preload da imagem LCP (Mockup e Logo) -->
-    <link rel="preload" as="image" href="https://i.postimg.cc/jSR90w0Z/Body-Comp-(2500-x-1080-px).webp" fetchpriority="high" />
+    <!-- Otimizacao Critical Render Path: Preload da imagem LCP (Mockup) -->
     <link rel="preload" as="image" href="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp" fetchpriority="high" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600&family=Space+Grotesk:wght@600;700&display=swap"></noscript>
 
     <style>
       /* Critical CSS Inline */
