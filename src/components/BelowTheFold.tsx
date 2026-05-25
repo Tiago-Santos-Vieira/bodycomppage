@@ -141,6 +141,38 @@ export default function BelowTheFold() {
         </div>
       </section>
 
+      <section className="py-16 md:py-24 bg-surface relative overflow-hidden" id="comparativo">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-10 md:mb-12">
+            <h2 className="font-headline-lg text-3xl md:text-4xl text-on-surface mb-4">O que o mercado oferece vs O modelo Vitalício BodyComp</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse bg-white rounded-xl shadow-sm overflow-hidden">
+              <thead>
+                <tr>
+                  <th className="py-4 px-6 bg-slate-100 font-headline-md text-slate-700 text-lg border-b border-slate-200 w-1/2">Mercado Tradicional</th>
+                  <th className="py-4 px-6 bg-green-500 font-headline-md text-white text-lg border-b border-green-600 shadow-md transform scale-[1.02] rounded-t-lg z-10 relative">BodyComp</th>
+                </tr>
+              </thead>
+              <tbody className="font-body-md text-slate-700">
+                <tr>
+                  <td className="py-4 px-6 border-b border-slate-200">Mensalidades caras e eternas</td>
+                  <td className="py-4 px-6 bg-green-50/50 border-b border-green-100 font-semibold text-green-900 border-l border-r border-green-200 relative z-10">Pagamento único de R$ 97,90</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 border-b border-slate-200">Limite de pacientes</td>
+                  <td className="py-4 px-6 bg-green-50/50 border-b border-green-100 font-semibold text-green-900 border-l border-r border-green-200 relative z-10">Pacientes Ilimitados</td>
+                </tr>
+                <tr>
+                  <td className="py-4 px-6 border-b border-slate-200">Aplicativos complexos para o paciente</td>
+                  <td className="py-4 px-6 bg-green-50/50 border-b border-green-500/20 font-semibold text-green-900 border-l border-r border-green-200 rounded-b-lg shadow-sm relative z-10">Envio de dietas prontas em PDF</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <section className="py-16 md:py-24 bg-surface relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 flex flex-col items-center">
@@ -157,20 +189,20 @@ export default function BelowTheFold() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
               <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
               <div className="flex space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />)}
               </div>
-              <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
-                "Eu pagava mais de R$ 900 por ano em um software que eu usava só 30%. O BodyComp me impressionou: visual moderno, anamnese super completa e não tem mensalidade alguma. Paguei em 1 consulta e já recuperei o investimento."
+              <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic text-lg">
+                "Achei que era bom demais para ser verdade, mas decidi testar por causa da garantia. O sistema é absurdamente rápido e direto ao ponto. Economizo R$ 1.200 por ano e cancelei minhas assinaturas antigas!"
               </p>
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center font-bold text-primary">DR</div>
+                <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center font-bold text-primary">MV</div>
                 <div>
-                  <h4 className="font-headline-md text-sm md:text-base text-on-surface">Dra. Roberta Almeida</h4>
-                  <p className="font-body-sm text-xs text-on-surface-variant">Nutricionista Esportiva</p>
+                  <h4 className="font-headline-md text-sm md:text-base text-on-surface">Marcelle Vianna</h4>
+                  <p className="font-body-sm text-xs text-on-surface-variant">Nutricionista Clínica</p>
                 </div>
               </div>
             </div>
@@ -178,33 +210,16 @@ export default function BelowTheFold() {
             <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
               <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
               <div className="flex space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
+                {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 text-yellow-400 fill-yellow-400" />)}
               </div>
-              <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
-                "A economia de tempo na hora de montar a dieta do paciente na frente dele é o grande diferencial. O paciente sai encantado com os materiais que gero em PDF. Sem dúvidas, o melhor custo x benefício do mercado atual."
+              <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic text-lg">
+                "Pagar mensalidade fixa quando se está começando é muito difícil. O BodyComp foi a salvação. Meus primeiros pacientes amam receber a dieta pronta em PDF. A ferramenta se pagou na minha primeira consulta!"
               </p>
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center font-bold text-secondary">FC</div>
+                <div className="w-12 h-12 bg-secondary/20 rounded-full flex items-center justify-center font-bold text-secondary">MR</div>
                 <div>
-                  <h4 className="font-headline-md text-sm md:text-base text-on-surface">Felipe Costa</h4>
-                  <p className="font-body-sm text-xs text-on-surface-variant">Nutricionista Clínico</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-surface-container-lowest p-8 rounded-2xl border border-surface-variant shadow-lg flex flex-col relative">
-              <Quote className="absolute top-6 right-6 w-8 h-8 text-primary/10" />
-              <div className="flex space-x-1 mb-4">
-                {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 text-yellow-400 fill-yellow-400" />)}
-              </div>
-              <p className="font-body-md text-on-surface-variant mb-6 flex-grow italic">
-                "Tinha receio de mudar de plataforma, mas o suporte foi perfeito. A gestão de horários automatizou minha agenda que era um caos. O fato de ser pagamento único, num software tão de ponta, ainda me deixa pasma."
-              </p>
-              <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center font-bold text-blue-600">JS</div>
-                <div>
-                  <h4 className="font-headline-md text-sm md:text-base text-on-surface">Juliana Silva</h4>
-                  <p className="font-body-sm text-xs text-on-surface-variant">Nutrição Materno-Infantil</p>
+                  <h4 className="font-headline-md text-sm md:text-base text-on-surface">Matheus Rocha</h4>
+                  <p className="font-body-sm text-xs text-on-surface-variant">Estudante</p>
                 </div>
               </div>
             </div>
@@ -286,12 +301,40 @@ export default function BelowTheFold() {
             ))}
           </div>
 
-          <div className="mt-12 text-center bg-surface-container-lowest p-8 border border-primary-container/30 rounded-2xl">
-            <h3 className="font-headline-md text-xl mb-3 text-on-surface">Ainda tem dúvidas?</h3>
-            <p className="font-body-sm text-on-surface-variant mb-6">Não perca mais tempo pagando mensalidades.</p>
-            <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-green-500 text-white font-button px-6 py-3 rounded-lg hover:bg-green-600 transition-colors shadow-md text-base font-bold animate-cta-pulse">
-              Aproveitar Oferta Única
-              <ArrowRight className="ml-2 w-5 h-5" />
+          <div className="mt-16 text-center bg-surface-container-lowest p-8 border border-green-500/30 rounded-2xl max-w-2xl mx-auto shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1 bg-green-500"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" className="w-24 h-24 mx-auto mb-6 transform hover:scale-105 transition-transform duration-300">
+              <defs>
+                <linearGradient id="gold-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#FDE047" />
+                  <stop offset="50%" stopColor="#EAB308" />
+                  <stop offset="100%" stopColor="#CA8A04" />
+                </linearGradient>
+                <linearGradient id="green-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#22C55E" />
+                  <stop offset="100%" stopColor="#15803D" />
+                </linearGradient>
+                <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="4" stdDeviation="4" floodOpacity="0.2" />
+                </filter>
+              </defs>
+              
+              <path filter="url(#shadow)" d="M100 5 L117 25 L144 21 L154 45 L179 52 L177 78 L197 93 L185 117 L194 141 L171 154 L165 179 L140 176 L118 196 L100 180 L82 196 L60 176 L35 179 L29 154 L6 141 L15 117 L3 93 L23 78 L21 52 L46 45 L56 21 L83 25 Z" fill="url(#gold-grad)" />
+              
+              <circle cx="100" cy="100" r="75" fill="white" />
+              <circle cx="100" cy="100" r="70" fill="url(#green-grad)" />
+              <circle cx="100" cy="100" r="62" fill="none" stroke="#FDE047" strokeWidth="2" strokeDasharray="6 4" />
+              
+              <text x="100" y="85" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="42" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="-1">7 DIAS</text>
+              <text x="100" y="115" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="18" fontWeight="800" fill="#FDE047" textAnchor="middle" letterSpacing="1">GARANTIA</text>
+              <text x="100" y="140" fontFamily="ui-sans-serif, system-ui, sans-serif" fontSize="13" fontWeight="800" fill="white" textAnchor="middle" letterSpacing="1">INCONDICIONAL</text>
+            </svg>
+            <h3 className="font-headline-md text-2xl mb-4 text-on-surface">Garantia BodyComp de 7 Dias</h3>
+            <p className="font-body-md text-on-surface-variant mb-8">
+              Experimente a plataforma com <strong>risco zero</strong>. Se nos primeiros 7 dias você não comprovar que o BodyComp agilizou seus atendimentos e otimizou sua rotina, nós reembolsamos 100% do seu investimento. Compra segura, devolução imediata e sem letras miúdas.
+            </p>
+            <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center bg-green-500 text-white font-button px-8 py-4 rounded-lg hover:bg-green-600 transition-colors shadow-md text-lg font-bold hover:-translate-y-1 transform duration-300 w-full sm:w-auto">
+              Sim, Confio e Quero Testar Agora
             </a>
           </div>
         </div>

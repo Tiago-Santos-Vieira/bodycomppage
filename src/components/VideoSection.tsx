@@ -2,13 +2,10 @@ import React from 'react';
 
 export default function VideoSection() {
   return (
-    <section className="pb-16 md:pb-24 pt-4 md:pt-8 bg-background relative z-20" id="apresentacao">
+    <section className="pb-16 md:pb-24 pt-16 md:pt-24 bg-slate-50 relative z-20 w-full" id="apresentacao">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div className="animate-fade-in-up">
-          <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface mb-4">Veja o Body Comp em Ação</h2>
-          <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant mb-8 md:mb-10 max-w-2xl mx-auto">
-            Descubra em poucos minutos como nossa plataforma vai transformar sua rotina clínica e multiplicar seus resultados.
-          </p>
+          <h2 className="font-headline-lg text-3xl md:text-headline-lg text-on-surface mb-8 md:mb-12">Descubra o Poder do BodyComp por Dentro (Vídeo de 3 Minutos)</h2>
 
           <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black border border-surface-variant group hover:shadow-[0_20px_50px_rgba(0,82,255,0.15)] transition-all duration-500">
             {/* Background glow for video */}

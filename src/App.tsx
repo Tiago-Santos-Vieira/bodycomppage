@@ -62,6 +62,11 @@ export default function App() {
 
   return (
     <div className="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
+      {/* Top Alert Bar */}
+      <div className="bg-slate-900 text-white text-center py-2 px-4 text-xs sm:text-sm font-medium z-[60] relative w-full">
+        ⚡ Licença Definitiva com 91% OFF. Sem mensalidades.
+      </div>
+      
       {/* TopNavBar */}
       <nav className="sticky top-0 w-full z-50 bg-white font-['Space_Grotesk'] antialiased border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
@@ -99,27 +104,27 @@ export default function App() {
             >
               <div className="inline-flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded-full">
                 <BadgeCheck className="text-secondary w-4 h-4 md:w-5 md:h-5" />
-                <span className="font-label-caps text-[10px] md:text-label-caps text-on-surface-variant uppercase tracking-wider">A Revolução na Prática Clínica</span>
+                <span className="font-label-caps text-[10px] md:text-label-caps text-on-surface-variant uppercase tracking-wider">ACESSO VITALÍCIO</span>
               </div>
               <h1 className="font-headline-xl text-4xl md:text-5xl lg:text-5xl xl:text-headline-xl text-on-surface leading-tight tracking-tight max-w-4xl mx-auto">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-secondary">
-                  O Software de Nutrição Completo.
+                  Software de Nutrição Completo.
                 </span><br />
-                Sem Mensalidades, Para Sempre.
+                Zero Mensalidades.
               </h1>
               <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant max-w-3xl">
-                Automatize processos complexos, foque no atendimento e tenha acesso vitalício ao software definitivo para nutricionistas de alta performance com um único pagamento.
+                Agilize seus atendimentos e prescreva dietas na metade do tempo. Pague apenas R$ 97,90 uma única vez e use para sempre.
               </p>
               
               <div className="space-y-4 pt-4 flex flex-col items-center w-full">
                 <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="relative group bg-green-500 text-white font-button px-4 py-4 md:px-8 md:py-4 rounded-lg hover:bg-green-600 transition-colors shadow-lg hover:shadow-2xl w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 overflow-hidden animate-cta-pulse">
                   <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                  <span className="text-sm md:text-base text-center relative z-10">Sim, Quero Meu Acesso Vitalício Agora</span>
+                  <span className="text-sm md:text-base text-center relative z-10 font-bold">GARANTIR ACESSO VITALÍCIO (R$ 97,90)</span>
                   <ArrowRight className="w-5 h-5 hidden sm:block relative z-10 group-hover:translate-x-1 transition-transform" />
                 </a>
                 <p className="font-body-sm text-xs md:text-body-sm text-outline flex items-center justify-center space-x-2 max-w-sm sm:max-w-none text-center">
                   <CircleCheck className="text-secondary w-4 h-4 shrink-0 hidden sm:block" />
-                  <span>Pagamento Único. Sem Mensalidades. Satisfação garantida.</span>
+                  <span>🔒 Risco Zero: 7 dias de garantia.</span>
                 </p>
               </div>
 
