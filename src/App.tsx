@@ -1,201 +1,583 @@
-import React, { useState, useEffect, useRef, Suspense } from 'react';
-import {
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Calendar, 
+  ClipboardList, 
+  Utensils, 
+  Activity, 
   ArrowRight,
-  BadgeCheck,
-  CircleCheck,
+  Play,
+  Mail,
+  ShieldCheck,
+  ChevronDown
 } from 'lucide-react';
+import './index.css';
 
-const BelowTheFold = React.lazy(() => import('./components/BelowTheFold'));
-const VideoSection = React.lazy(() => import('./components/VideoSection'));
+// --- Configuration & Data ---
+const SCENES = 10; // 0 (Welcome), 1-6 (Questions), 7 (Email), 8 (Processing), 9 (Result)
 
-function LazyScrollRender({ children, height = 'h-64' }: { children: React.ReactNode, height?: string }) {
-  const [shouldRender, setShouldRender] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setShouldRender(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: "600px" } // Render ahead of time
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={ref}>
-      {shouldRender ? children : <div className={`${height} w-full`} />}
-    </div>
-  );
-}
-
-const mockupImages = [
-  "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp",
-  "https://i.postimg.cc/3JXL7cKt/Captura-de-tela-2026-05-21-143421.webp",
-  "https://i.postimg.cc/yYmfBbVp/Captura-de-tela-2026-05-21-143528.webp",
-  "https://i.postimg.cc/qMsm05km/Captura-de-tela-2026-05-21-143637.webp",
-  "https://i.postimg.cc/qMsm05kb/Captura-de-tela-2026-05-21-143659.webp"
+const QUIZ_QUESTIONS = [
+  {
+    id: 'q1',
+    headline: "Em média, quantos pacientes você atende (ou planeja atender) por mês?",
+    subheadline: "(Considere retornos e primeiras consultas).",
+    options: [
+      { id: 'a', label: "A) 1 a 10 pacientes." },
+      { id: 'b', label: "B) 11 a 30 pacientes." },
+      { id: 'c', label: "C) Mais de 30 pacientes." },
+      { id: 'd', label: "D) Ainda estou estruturando meus primeiros atendimentos." }
+    ]
+  },
+  {
+    id: 'q2',
+    headline: "Como funciona a sua etapa antes de o paciente sentar na sua frente (Agendamento e Anamnese)?",
+    options: [
+      { id: 'a', label: "A) Tudo via WhatsApp e papel: perco tempo e pacientes às vezes faltam sem avisar.", icon: Calendar },
+      { id: 'b', label: "B) Uso um sistema, mas a anamnese ainda é longa e feita na hora da consulta.", icon: ClipboardList },
+      { id: 'c', label: "C) Meu sistema atual tem essas funções, mas acho confuso e os pacientes não engajam." }
+    ]
+  },
+  {
+    id: 'q3',
+    headline: "Durante ou logo após a consulta, qual destas tarefas mais esgota sua energia?",
+    options: [
+      { id: 'a', label: "A) Registrar a antropometria e gerar gráficos de evolução claros.", icon: Activity },
+      { id: 'b', label: "B) Montar o cardápio do zero e calcular macros manualmente.", icon: Utensils },
+      { id: 'c', label: "C) O processo inteiro demora porque uso planilhas soltas e calculadoras online." },
+      { id: 'd', label: "D) Sou rápido nisso, meu problema é só o preço alto do software que uso." }
+    ]
+  },
+  {
+    id: 'q4',
+    headline: "Sendo muito sincero: se você somar 12 meses, quanto você gasta por ANO com softwares de nutrição hoje?",
+    options: [
+      { id: 'a', label: "A) R$ 0 (Uso planilhas gratuitas, mas perco muito tempo)." },
+      { id: 'b', label: "B) Entre R$ 500 e R$ 1.200 por ano." },
+      { id: 'c', label: "C) Mais de R$ 1.500 por ano (Sinto que estou pagando um aluguel sem fim)." }
+    ]
+  },
+  {
+    id: 'q5',
+    headline: "Se você não precisasse mais pagar mensalidades caras (ou se tivesse as horas livres que perde no Excel), qual seria sua prioridade para o consultório?",
+    options: [
+      { id: 'a', label: "A) Investiria em tráfego pago para captar mais pacientes." },
+      { id: 'b', label: "B) Melhoraria o marketing e a identidade visual do meu negócio." },
+      { id: 'c', label: "C) Faria novos cursos para me especializar ainda mais." },
+      { id: 'd', label: "D) Apenas aproveitaria o aumento direto no meu lucro no fim do mês." }
+    ]
+  },
+  {
+    id: 'q6',
+    headline: "Se existisse uma plataforma profissional, focada nos 4 pilares essenciais e que cobrasse apenas UMA VEZ na vida (sem pegadinhas)... qual seria sua reação?",
+    options: [
+      { id: 'a', label: "A) Eu trocaria de software hoje mesmo." },
+      { id: 'b', label: "B) Eu finalmente abandonaria o papel e as planilhas." },
+      { id: 'c', label: "C) Eu precisaria ver a interface e como funciona antes de decidir." }
+    ]
+  }
 ];
 
-export default function App() {
-  const [currentMockupIndex, setCurrentMockupIndex] = useState(0);
-  const scrollRef = useRef<HTMLDivElement>(null);
+const PILLARS = [
+  {
+    id: 'agendamento',
+    title: 'Agendamento Inteligente',
+    icon: Calendar,
+    before: 'Troca dezenas de mensagens no WhatsApp para achar um horário e ainda sofre com pacientes que esquecem da consulta.',
+    after: 'Com a nossa gestão inteligente de confirmações automáticas, você reduz drasticamente as faltas e mantém a agenda lotada e organizada, sem esforço manual.'
+  },
+  {
+    id: 'anamnese',
+    title: 'Anamnese Completa',
+    icon: ClipboardList,
+    before: 'Gasta os primeiros 30 minutos da consulta fazendo perguntas básicas, deixando o paciente impaciente.',
+    after: 'Colete dados clínicos de forma estruturada antes mesmo do paciente pisar no consultório. Com questionários personalizáveis pré-consulta, você usa o tempo para gerar conexão.'
+  },
+  {
+    id: 'prescricao',
+    title: 'Prescrição de Dietas',
+    icon: Utensils,
+    before: 'Horas na frente do Excel cruzando tabelas de alimentos e somando macros.',
+    after: 'Realize cálculos automáticos em segundos. Acesse um banco de alimentos extenso e faça a montagem visual intuitiva de cardápios.'
+  },
+  {
+    id: 'avaliacao',
+    title: 'Avaliações Físicas',
+    icon: Activity,
+    before: 'Anota medidas no papel e não consegue provar de forma visual que o paciente teve resultados.',
+    after: 'Faça o registro preciso de antropometria. Entregue gráficos evolutivos claros que aumentam a fidelização e mostram o verdadeiro valor do seu trabalho.'
+  }
+];
 
+// --- Animations ---
+const cardVariants = {
+  hidden: { opacity: 0, y: 50, scale: 0.95, rotateX: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1, 
+    rotateX: 0,
+    transition: { type: 'spring', stiffness: 100, damping: 15, duration: 0.6 }
+  },
+  exit: { 
+    opacity: 0, 
+    y: -50, 
+    scale: 0.95,
+    rotateX: -10,
+    transition: { ease: 'easeInOut', duration: 0.4 } 
+  }
+};
+
+const BackgroundNodes = () => (
+  <div className="bg-nodes">
+    <div className="node"></div>
+    <div className="node"></div>
+    <div className="node"></div>
+  </div>
+);
+
+export default function App() {
+  const [scene, setScene] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showVslButton, setShowVslButton] = useState(false);
+  const [email, setEmail] = useState('');
+  const [showMicroInsight, setShowMicroInsight] = useState(false);
+  const [activePillar, setActivePillar] = useState(null);
+
+  // Auto-progress from loading scene
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentMockupIndex((prev) => {
-        const nextIndex = (prev + 1) % mockupImages.length;
-        if (scrollRef.current) {
-          const container = scrollRef.current;
-          const width = container.clientWidth;
-          container.scrollTo({ left: width * nextIndex, behavior: 'smooth' });
-        }
-        return nextIndex;
-      });
-    }, 4000);
-    return () => clearInterval(interval);
-  }, []);
+    if (scene === 8) {
+      const timer = setTimeout(() => {
+        setScene(9);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [scene]);
+
+  // VSL Button Delay
+  useEffect(() => {
+    if (scene === 9) {
+      const timer = setTimeout(() => {
+        setShowVslButton(true);
+      }, 5000); // 5 seconds delay for demo
+      return () => clearTimeout(timer);
+    }
+  }, [scene]);
+
+  const handleSelect = (questionId, optionId) => {
+    setAnswers(prev => ({ ...prev, [questionId]: optionId }));
+    
+    // Check if it's question 4 to show micro-insight
+    if (questionId === 'q4') {
+      setShowMicroInsight(true);
+      setTimeout(() => {
+        setShowMicroInsight(false);
+        setScene(prev => prev + 1);
+      }, 4000);
+    } else {
+      setTimeout(() => {
+        setScene(prev => prev + 1);
+      }, 400);
+    }
+  };
+
+  const handleEmailSubmit = (e) => {
+    e.preventDefault();
+    if (email.includes('@')) {
+      // In a real app, send to Supabase here
+      setScene(8); // Go to processing
+    }
+  };
+
+  const calculateProfile = () => {
+    let perfilA = 0;
+    let perfilB = 0;
+
+    if (answers.q2 === 'a') perfilB += 1;
+    if (answers.q2 === 'b' || answers.q2 === 'c') perfilA += 1;
+
+    if (answers.q3 === 'd') perfilA += 1;
+    if (answers.q3 === 'a' || answers.q3 === 'b' || answers.q3 === 'c') perfilB += 1;
+
+    if (answers.q4 === 'a') perfilB += 2;
+    if (answers.q4 === 'b' || answers.q4 === 'c') perfilA += 2;
+
+    return perfilA >= perfilB ? 'A' : 'B';
+  };
+
+  const profile = calculateProfile();
 
   return (
-    <div className="bg-background text-on-background font-body-md min-h-screen flex flex-col antialiased">
-      {/* Top Alert Bar */}
-      <div className="bg-slate-900 text-white text-center py-2 px-4 text-xs sm:text-sm font-medium z-[60] relative w-full">
-        ⚡ Licença Definitiva com 91% OFF. Sem mensalidades.
-      </div>
+    <>
+      <BackgroundNodes />
       
-      {/* TopNavBar */}
-      <nav className="sticky top-0 w-full z-50 bg-white font-['Space_Grotesk'] antialiased border-b border-slate-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-          <a href="#" className="flex items-center shrink-0">
-            <img fetchPriority="high" width="231" height="100" src="https://i.postimg.cc/ykrn0NNZ/Body-Comp-(2500-x-1080-px).png" alt="Body Comp Logo" className="h-[32px] sm:h-[45px] md:h-[57px] w-auto object-contain" />
-          </a>
-          
-          <div className="hidden lg:flex items-center space-x-8">
-            <a className="text-slate-600 font-medium hover:text-blue-500 transition-all duration-300 ease-in-out hover:opacity-80" href="#apresentacao">Apresentação</a>
-            <a className="text-slate-600 font-medium hover:text-blue-500 transition-all duration-300 ease-in-out hover:opacity-80" href="#funcionalidades">Funcionalidades</a>
-            <a className="text-slate-600 font-medium hover:text-blue-500 transition-all duration-300 ease-in-out hover:opacity-80" href="#planos">Planos</a>
-            <a className="text-slate-600 font-medium hover:text-blue-500 transition-all duration-300 ease-in-out hover:opacity-80" href="#sobre">Sobre</a>
-          </div>
-          
-          <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white font-button px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-green-600 transition-colors shadow-sm inline-block text-xs sm:text-sm md:text-base font-bold whitespace-nowrap ml-4 animate-cta-pulse">
-            Garantir <span className="hidden sm:inline">Acesso</span>
-          </a>
-        </div>
-      </nav>
-
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="relative pt-12 pb-16 md:pt-24 md:pb-32 overflow-hidden bg-gradient-to-b from-surface-bright to-background">
-          {/* Decorative background elements */}
-          <div 
-            className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] md:w-[800px] md:h-[800px] bg-gradient-to-br from-primary-container/20 to-blue-200/20 rounded-full blur-3xl opacity-60 pointer-events-none z-0"
-          />
-          <div 
-            className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] md:w-[600px] md:h-[600px] bg-gradient-to-tr from-secondary-container/20 to-green-100/20 rounded-full blur-3xl opacity-60 pointer-events-none z-0"
-          />
-
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 flex flex-col items-center text-center">
+      <main className="app-container">
+        
+        {/* Progress Bar for Quiz Questions */}
+        {scene > 0 && scene < 7 && !showMicroInsight && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="progress-container"
+          >
             <div 
-              className="space-y-6 md:space-y-8 flex flex-col items-center w-full animate-fade-in-up"
+              className="progress-bar" 
+              style={{ width: `${(scene / 6) * 100}%` }}
+            ></div>
+          </motion.div>
+        )}
+
+        <AnimatePresence mode="wait">
+          
+          {/* SCENE 0: WELCOME */}
+          {scene === 0 && (
+            <motion.div 
+              key="scene0"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="glass-card"
             >
-              <div className="inline-flex items-center space-x-2 bg-surface-container px-3 py-1.5 rounded-full">
-                <BadgeCheck className="text-secondary w-4 h-4 md:w-5 md:h-5" />
-                <span className="font-label-caps text-[10px] md:text-label-caps text-on-surface-variant uppercase tracking-wider">ACESSO VITALÍCIO</span>
+              <div style={{ perspective: '1000px' }}>
+                <motion.div 
+                  animate={{ 
+                    y: [0, -10, 0],
+                    rotateZ: [-1, 1, -1]
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  <h1 className="logo">Body<span className="logo-green">Comp</span></h1>
+                </motion.div>
               </div>
-              <h1 className="font-headline-xl text-4xl md:text-5xl lg:text-5xl xl:text-headline-xl text-on-surface leading-tight tracking-tight max-w-4xl mx-auto">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-blue-500 to-secondary">
-                  Software de Nutrição Completo.
-                </span><br />
-                Zero Mensalidades.
-              </h1>
-              <p className="font-body-lg text-base md:text-body-lg text-on-surface-variant max-w-3xl">
-                Agilize seus atendimentos e prescreva dietas na metade do tempo. Pague apenas R$ 97,90 uma única vez e use para sempre.
-              </p>
+
+              <h2 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '1.5rem', lineHeight: 1.2 }}>
+                Descubra qual gargalo silencioso está consumindo o lucro do seu consultório (e como estancar isso).
+              </h2>
               
-              <div className="space-y-4 pt-4 flex flex-col items-center w-full">
-                <a href="https://pay.kiwify.com.br/chRzTuK" target="_blank" rel="noopener noreferrer" className="relative group bg-green-500 text-white font-button px-4 py-4 md:px-8 md:py-4 rounded-lg hover:bg-green-600 transition-colors shadow-lg hover:shadow-2xl w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 overflow-hidden animate-cta-pulse">
-                  <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
-                  <span className="text-sm md:text-base text-center relative z-10 font-bold">GARANTIR ACESSO VITALÍCIO (R$ 97,90)</span>
-                  <ArrowRight className="w-5 h-5 hidden sm:block relative z-10 group-hover:translate-x-1 transition-transform" />
-                </a>
-                <p className="font-body-sm text-xs md:text-body-sm text-outline flex items-center justify-center space-x-2 max-w-sm sm:max-w-none text-center">
-                  <CircleCheck className="text-secondary w-4 h-4 shrink-0 hidden sm:block" />
-                  <span>🔒 Risco Zero: 7 dias de garantia.</span>
+              <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6 }}>
+                Responda a estas 6 perguntas rápidas e veja se você está operando no verde ou deixando dinheiro na mesa todos os meses.
+              </p>
+
+              <button className="btn-primary btn-sticky-mobile" onClick={() => setScene(1)}>
+                Iniciar Diagnóstico Gratuito <ArrowRight size={20} />
+              </button>
+            </motion.div>
+          )}
+
+          {/* MICRO-INSIGHT */}
+          {showMicroInsight && (
+            <motion.div 
+              key="micro-insight"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="glass-card"
+            >
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <ShieldCheck size={48} color="var(--electric-blue)" />
+              </div>
+              <h3 style={{ fontSize: '1.5rem', color: 'var(--navy)' }}>Processando...</h3>
+              <p style={{ fontSize: '1.2rem', color: '#475569', marginTop: '1rem', lineHeight: 1.6 }}>
+                Sabia que a maioria dos nutricionistas gasta, em 3 anos, o equivalente a um equipamento de ponta só pagando 'aluguel' de software que subutiliza?
+              </p>
+            </motion.div>
+          )}
+
+          {/* SCENES 1-6: QUIZ QUESTIONS */}
+          {scene > 0 && scene < 7 && !showMicroInsight && (
+            <motion.div 
+              key={`scene${scene}`}
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="glass-card"
+            >
+              <h2 className="gradient-text" style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>
+                {QUIZ_QUESTIONS[scene - 1].headline}
+              </h2>
+              {QUIZ_QUESTIONS[scene - 1].subheadline && (
+                <p style={{ color: '#64748B', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
+                  {QUIZ_QUESTIONS[scene - 1].subheadline}
                 </p>
+              )}
+              {!QUIZ_QUESTIONS[scene - 1].subheadline && <div style={{ marginBottom: '1.5rem' }}></div>}
+
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {QUIZ_QUESTIONS[scene - 1].options.map((opt, idx) => {
+                  const isSelected = answers[QUIZ_QUESTIONS[scene - 1].id] === opt.id;
+                  const Icon = opt.icon;
+                  
+                  return (
+                    <motion.div
+                      key={opt.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.1 }}
+                      className={`option-card ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleSelect(QUIZ_QUESTIONS[scene - 1].id, opt.id)}
+                    >
+                      {Icon && (
+                        <div className="option-icon">
+                          <Icon size={24} />
+                        </div>
+                      )}
+                      <span style={{ fontWeight: 500, fontSize: '1.05rem', color: isSelected ? 'var(--navy)' : 'var(--navy)' }}>
+                        {opt.label}
+                      </span>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          )}
+
+          {/* SCENE 7: EMAIL CAPTURE */}
+          {scene === 7 && (
+            <motion.div 
+              key="scene7"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="glass-card"
+            >
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '1rem', borderRadius: '50%' }}>
+                  <Mail size={40} color="var(--electric-blue)" />
+                </div>
+              </div>
+              <h2 className="gradient-text" style={{ fontSize: '1.6rem', marginBottom: '1rem' }}>
+                Seu diagnóstico está pronto.
+              </h2>
+              <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2rem', lineHeight: 1.5 }}>
+                Descobrimos onde está o vazamento financeiro do seu consultório. Onde devemos enviar sua cópia e seu plano de ação?
+              </p>
+
+              <form onSubmit={handleEmailSubmit}>
+                <input 
+                  type="email" 
+                  className="email-input"
+                  placeholder="seu.melhor@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <button type="submit" className="btn-primary" style={{ width: '100%' }}>
+                  Ver Meu Resultado Agora <ArrowRight size={20} />
+                </button>
+              </form>
+            </motion.div>
+          )}
+
+          {/* SCENE 8: LOADING TRANSITION */}
+          {scene === 8 && (
+            <motion.div 
+              key="scene8"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="glass-card"
+              style={{ padding: '4rem 2rem' }}
+            >
+              <div className="loader-container">
+                <div className="spinner"></div>
+                
+                <motion.h1 
+                  className="logo"
+                  animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  Body<span className="logo-green">Comp</span>
+                </motion.h1>
+                
+                <div style={{ height: '60px', marginTop: '1rem' }}>
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key="text1"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.5 }}
+                      style={{ fontSize: '1.2rem', color: 'var(--electric-blue)', fontWeight: 500 }}
+                    >
+                      Calculando horas perdidas...
+                    </motion.p>
+                  </AnimatePresence>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* SCENE 9: RESULT PAGE (PITCH) */}
+          {scene === 9 && (
+            <motion.div 
+              key="scene9"
+              variants={cardVariants}
+              initial="hidden"
+              animate="visible"
+              className="glass-card"
+              style={{ maxWidth: '900px', padding: '2rem 3rem' }}
+            >
+              <motion.div 
+                animate={{ y: [0, -5, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ marginBottom: '1rem' }}
+              >
+                <h1 className="logo" style={{ fontSize: '2.5rem', textShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
+                  Body<span className="logo-green">Comp</span>
+                </h1>
+              </motion.div>
+
+              <h2 className="gradient-text" style={{ fontSize: '1.8rem', lineHeight: 1.3 }}>
+                {profile === 'A' 
+                  ? "Seu diagnóstico revela um vazamento financeiro invisível no seu consultório."
+                  : "Seu diagnóstico revela um gargalo de tempo que está limitando sua escala."
+                }
+              </h2>
+              
+              <div style={{ 
+                background: 'rgba(239, 246, 255, 0.5)', 
+                padding: '1.5rem', 
+                borderRadius: '16px', 
+                border: '1px solid rgba(147, 197, 253, 0.5)',
+                marginBottom: '2rem',
+                textAlign: 'left'
+              }}>
+                {profile === 'A' ? (
+                  <>
+                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong>Resumo:</strong> Pelas suas respostas, fica claro que você já entende a importância da tecnologia e usa um sistema para organizar seus atendimentos. O problema? Você está pagando o preço de um "aluguel" eterno por um pacote de dezenas de funcionalidades que nem tem tempo de usar.
+                    </p>
+                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong style={{ color: 'var(--lime-green)' }}>A Descoberta:</strong> O modelo de assinaturas mensais não foi criado para ser eficiente para você; foi criado para garantir lucro recorrente para as empresas de software. A cada mês, uma parte considerável do seu lucro fica retida na mensalidade.
+                    </p>
+                    <p style={{ color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong>O Próximo Passo:</strong> Seu próximo passo não é buscar um software "mais barato". É adotar um modelo focado em <em>posse</em>, e não em aluguel. Imagine usar 100% dos recursos que importam sem nunca mais se preocupar com aquele débito no cartão todo mês.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong>Resumo:</strong> Suas respostas mostram que você é um profissional cuidadoso, mas que está perdendo horas preciosas com trabalhos manuais. Você evita softwares pagos porque as mensalidades são altas, e acaba compensando isso montando dietas do zero em planilhas.
+                    </p>
+                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong style={{ color: 'var(--lime-green)' }}>A Descoberta:</strong> Você acredita que está economizando dinheiro ao não pagar uma mensalidade, mas o custo real está no seu <em>tempo</em>. A lentidão para calcular macros atrasa a entrega da dieta, e você paga isso com a sua energia.
+                    </p>
+                    <p style={{ color: '#1E293B', lineHeight: 1.6 }}>
+                      <strong>O Próximo Passo:</strong> Profissionalizar sua operação de ponta a ponta, sem assumir um custo fixo mensal. Imagine a agenda enviando confirmações automáticas e você calculando a antropometria e os macros em poucos cliques. Tudo sem pagar um centavo a mais por mês.
+                    </p>
+                  </>
+                )}
               </div>
 
-              {/* Mockup */}
-              <div className="w-full max-w-4xl mx-auto mt-12 md:mt-16 relative group cursor-pointer hover:scale-[1.02] transition-transform duration-500">
-                 <div className="aspect-[16/10] w-full bg-slate-50/50 backdrop-blur-sm rounded-t-xl md:rounded-t-2xl border-4 border-b-0 border-slate-200/60 shadow-2xl flex flex-col overflow-hidden relative">
-                    <div className="w-full h-4 sm:h-6 bg-slate-200/80 border-b border-slate-300/50 flex items-center px-4 shrink-0">
-                      <div className="flex space-x-1.5">
-                        <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                        <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                        <div className="w-2 h-2 rounded-full bg-green-400"></div>
+              <h3 style={{ fontSize: '1.4rem', color: 'var(--navy)', marginBottom: '1rem' }}>
+                Foi exatamente para estancar esse vazamento que o BodyComp foi criado.
+              </h3>
+              <p style={{ color: '#475569', marginBottom: '2rem' }}>
+                O mercado te disse que você precisava pagar mensalidades caras para ter um consultório profissional. Nós mudamos as regras. O BodyComp é o seu software de nutrição definitivo, focado no que realmente importa, com <strong>pagamento único</strong> e acesso vitalício.
+              </p>
+
+              {/* VSL Placeholder */}
+              <div className="video-placeholder">
+                <div className="play-icon">
+                  <Play fill="white" size={32} />
+                </div>
+                <span style={{ position: 'absolute', bottom: '1rem', right: '1rem', fontSize: '0.8rem', opacity: 0.8 }}>
+                  [Vídeo de Vendas - Aperte o Play]
+                </span>
+              </div>
+
+              {/* 3D Pillars Interactive Area */}
+              <h3 style={{ marginTop: '3rem', fontSize: '1.3rem', color: 'var(--electric-blue)' }}>Como o BodyComp transforma sua rotina:</h3>
+              <div className="pillars-grid">
+                {PILLARS.map((pillar) => {
+                  const Icon = pillar.icon;
+                  const isActive = activePillar === pillar.id;
+                  return (
+                    <motion.div 
+                      key={pillar.id}
+                      className="pillar-card"
+                      onClick={() => setActivePillar(isActive ? null : pillar.id)}
+                      whileHover={{ scale: 1.02 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                    >
+                      <div className="pillar-header">
+                        <div className="pillar-icon">
+                          <Icon size={20} />
+                        </div>
+                        <span className="pillar-title">{pillar.title}</span>
+                        <ChevronDown size={20} color="#94A3B8" style={{ marginLeft: 'auto', transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
                       </div>
-                    </div>
-                    <div className="flex-1 w-full bg-white relative overflow-hidden group">
-                      <div 
-                        ref={scrollRef}
-                        className="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
-                        onScroll={(e) => {
-                          const target = e.target as HTMLDivElement;
-                          const index = Math.round(target.scrollLeft / target.clientWidth);
-                          setCurrentMockupIndex(index);
-                        }}
-                      >
-                        {mockupImages.map((src, idx) => (
-                          <div key={idx} className="w-full h-full shrink-0 relative snap-center">
-                            <img 
-                              src={src} 
-                              alt={`Interface do BodyComp ${idx + 1}`} 
-                              className="w-full h-full object-cover object-top"
-                              fetchPriority={idx === 0 ? "high" : "auto"}
-                              loading={idx === 0 ? "eager" : "lazy"}
-                              width="1920"
-                              height="1080"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                if (!target.src.includes('.png')) {
-                                  target.src = target.src.replace('.webp', '.png');
-                                }
-                              }}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent mix-blend-overlay pointer-events-none"></div>
                       
-                      {/* Optional: Add navigation indicators */}
-                      <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2 z-10 pointer-events-none">
-                        {mockupImages.map((_, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${currentMockupIndex === idx ? 'bg-primary w-4' : 'bg-primary/30'}`}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                 </div>
-                 {/* Keyboard bottom line */}
-                 <div className="h-4 sm:h-6 w-[105%] -ml-[2.5%] bg-slate-300/80 rounded-b-xl shadow-lg border-t border-slate-400/30 shrink-0"></div>
+                      <AnimatePresence>
+                        {isActive && (
+                          <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="pillar-content"
+                          >
+                            <p style={{ marginBottom: '0.5rem', color: '#64748B' }}><em>Antes: {pillar.before}</em></p>
+                            <p><strong>Com BodyComp:</strong> {pillar.after}</p>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  )
+                })}
               </div>
-            </div>
-          </div>
-        </section>
 
-        <LazyScrollRender height="h-[200vh]">
-          <Suspense fallback={<div className="h-[200vh] w-full" />}>
-            <VideoSection />
-            <BelowTheFold />
-          </Suspense>
-        </LazyScrollRender>
+              {/* Delayed CTA Button */}
+              <AnimatePresence>
+                {showVslButton && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                    style={{ marginTop: '3rem' }}
+                  >
+                    <div style={{ background: '#FFFBEB', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #F59E0B', marginBottom: '1.5rem', textAlign: 'left' }}>
+                      <p style={{ fontSize: '0.95rem', color: '#B45309' }}>
+                        Softwares que entregam metade dessas integrações cobram facilmente de R$ 100 a R$ 250 por mês. No final de um ano, você deixou mais de R$ 1.500 na mesa deles. <strong>Com o BodyComp, você faz um pagamento único.</strong>
+                      </p>
+                    </div>
 
+                    <button 
+                      className="btn-primary" 
+                      style={{ width: '100%', padding: '1.25rem', fontSize: '1.1rem', marginBottom: '0.5rem' }}
+                      onClick={() => window.location.href = "https://pay.kiwify.com.br/chRzTuK"}
+                    >
+                      Quero Meu Acesso Definitivo ao BodyComp (Sem Mensalidades) <ArrowRight size={24} />
+                    </button>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
+                      <ShieldCheck size={20} color="var(--lime-green)" />
+                      <p style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>
+                        Garantia de 7 dias. Pague uma vez, receba acesso imediato.
+                      </p>
+                    </div>
+
+                    {/* Support Section */}
+                    <div className="support-section">
+                      <p style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '0.5rem' }}>
+                        Ficou com alguma dúvida sobre o acesso vitalício? Fale com a nossa equipe.
+                      </p>
+                      <a href="https://wa.me/5573981579948" target="_blank" rel="noreferrer" className="whatsapp-btn">
+                        Falar no WhatsApp (73) 98157-9948
+                      </a>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+            </motion.div>
+          )}
+
+        </AnimatePresence>
       </main>
-    </div>
+    </>
   );
 }
