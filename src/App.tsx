@@ -1,24 +1,32 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, 
-  ClipboardList, 
-  Utensils, 
-  Activity, 
+import {
+  Calendar,
+  ClipboardList,
+  Utensils,
+  Activity,
   ArrowRight,
-  Mail,
+  ChevronLeft,
+  ChevronDown,
+  Check,
+  Clock,
+  Lightbulb,
+  Lock,
+  MessageCircle,
   ShieldCheck,
-  ChevronDown
+  Sparkles
 } from 'lucide-react';
 import './index.css';
 
 // --- Configuration & Data ---
 const SCENES = 10; // 0 (Welcome), 1-6 (Questions), 7 (Email), 8 (Processing), 9 (Result)
+const QUESTION_COUNT = 6;
 
 // O InitiateCheckout é disparado pela própria Kiwify ao abrir o checkout.
 const CHECKOUT_URL = "https://pay.kiwify.com.br/chRzTuK";
 const WHATSAPP_NUMBER = "5573981579948";
 const DEMO_VIDEO_ID = "4jDG9i7AR1Q";
+const LOGO_SRC = "/logo-horizontal.webp";
 
 // URL do Apps Script que grava os leads na planilha (ver docs/leads-google-sheets.md).
 // Vazio = o quiz funciona normalmente, mas não salva os leads.
@@ -56,7 +64,7 @@ const QUIZ_QUESTIONS = [
   {
     id: 'q1',
     headline: "Em média, quantos pacientes você atende (ou planeja atender) por mês?",
-    subheadline: "(Considere retornos e primeiras consultas).",
+    subheadline: "Considere retornos e primeiras consultas.",
     options: [
       { id: 'a', label: "A) 1 a 10 pacientes." },
       { id: 'b', label: "B) 11 a 30 pacientes." },
@@ -68,8 +76,8 @@ const QUIZ_QUESTIONS = [
     id: 'q2',
     headline: "Como funciona a sua etapa antes de o paciente sentar na sua frente (Agendamento e Anamnese)?",
     options: [
-      { id: 'a', label: "A) Tudo via WhatsApp e papel: perco tempo e pacientes às vezes faltam sem avisar.", icon: Calendar },
-      { id: 'b', label: "B) Uso um sistema, mas a anamnese ainda é longa e feita na hora da consulta.", icon: ClipboardList },
+      { id: 'a', label: "A) Tudo via WhatsApp e papel: perco tempo e pacientes às vezes faltam sem avisar." },
+      { id: 'b', label: "B) Uso um sistema, mas a anamnese ainda é longa e feita na hora da consulta." },
       { id: 'c', label: "C) Meu sistema atual tem essas funções, mas acho confuso e os pacientes não engajam." }
     ]
   },
@@ -77,8 +85,8 @@ const QUIZ_QUESTIONS = [
     id: 'q3',
     headline: "Durante ou logo após a consulta, qual destas tarefas mais esgota sua energia?",
     options: [
-      { id: 'a', label: "A) Registrar a antropometria e gerar gráficos de evolução claros.", icon: Activity },
-      { id: 'b', label: "B) Montar o cardápio do zero e calcular macros manualmente.", icon: Utensils },
+      { id: 'a', label: "A) Registrar a antropometria e gerar gráficos de evolução claros." },
+      { id: 'b', label: "B) Montar o cardápio do zero e calcular macros manualmente." },
       { id: 'c', label: "C) O processo inteiro demora porque uso planilhas soltas e calculadoras online." },
       { id: 'd', label: "D) Sou rápido nisso, meu problema é só o preço alto do software que uso." }
     ]
@@ -118,50 +126,72 @@ const PILLARS = [
     id: 'agendamento',
     title: 'Agenda da Clínica',
     icon: Calendar,
-    before: 'Horários anotados no caderno ou espalhados no WhatsApp, e você só descobre o conflito na hora.',
     after: 'Veja todas as consultas do mês num calendário só, lance agendamentos em segundos e acompanhe os retornos de cada paciente.'
   },
   {
     id: 'anamnese',
     title: 'Anamnese Completa',
     icon: ClipboardList,
-    before: 'Anamnese no papel, que se perde na gaveta e não dá para consultar no retorno.',
-    after: 'Ficha completa e organizada: histórico clínico, medicamentos, alergias e intolerâncias, escala de Bristol, sono, estresse e hábitos. Tudo salvo no prontuário e pronto para imprimir.'
+    after: 'Histórico clínico, medicamentos, alergias e intolerâncias, escala de Bristol, sono, estresse e hábitos. Tudo salvo no prontuário e pronto para imprimir.'
   },
   {
     id: 'prescricao',
     title: 'Prescrição de Dietas',
     icon: Utensils,
-    before: 'Horas na frente do Excel cruzando tabelas de alimentos e somando macros.',
     after: 'Monte o cardápio com a Tabela TACO e medidas caseiras (escumadeira, concha, colher). Calorias, macros por refeição e g/kg calculados na hora.'
   },
   {
     id: 'avaliacao',
     title: 'Avaliações Físicas',
     icon: Activity,
-    before: 'Anota medidas no papel e não consegue provar de forma visual que o paciente teve resultados.',
-    after: 'Protocolo de 7 dobras, perimetria completa e fotos de frente e perfil. % de gordura, massa magra e TMB calculados na hora, com histórico e gráficos de evolução.'
+    after: 'Protocolo de 7 dobras, perimetria completa e fotos de frente e perfil. % de gordura, massa magra e TMB na hora, com gráficos de evolução.'
   }
 ];
 
-// --- Animations ---
-const cardVariants = {
-  hidden: { opacity: 0, y: 50, scale: 0.95, rotateX: 10 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1, 
-    rotateX: 0,
-    transition: { type: 'spring', stiffness: 100, damping: 15, duration: 0.6 }
+const DIAGNOSIS = {
+  A: {
+    title: <>Seu consultório tem um <span className="hl">vazamento financeiro</span> invisível.</>,
+    points: [
+      <>Você já usa sistema, mas paga <strong>todo mês</strong> por um pacote de funções que nem tem tempo de usar.</>,
+      <>A assinatura foi feita para dar lucro recorrente à empresa de software: <strong>a cada mês, parte do seu lucro fica com ela</strong>.</>,
+      <>O próximo passo não é um sistema "mais barato": é trocar <strong>aluguel por posse</strong>. Pagar uma vez e usar para sempre.</>
+    ]
   },
-  exit: { 
-    opacity: 0, 
-    y: -50, 
-    scale: 0.95,
-    rotateX: -10,
-    transition: { ease: 'easeInOut', duration: 0.4 } 
+  B: {
+    title: <>Um <span className="hl">gargalo de tempo</span> está limitando o seu consultório.</>,
+    points: [
+      <>Você evita mensalidade e compensa <strong>montando dietas do zero em planilhas</strong>.</>,
+      <>Parece economia, mas o custo real está no seu <strong>tempo</strong>: cada dieta que atrasa é energia que você não recupera.</>,
+      <>O próximo passo é profissionalizar a rotina <strong>sem assumir um custo fixo mensal</strong>: agenda, anamnese, avaliação e dieta no mesmo lugar.</>
+    ]
   }
 };
+
+const OFFER_ITEMS = [
+  'Agenda, anamnese, avaliação física e prescrição de dietas',
+  'Tabela TACO com medidas caseiras',
+  'Funciona no computador e no celular, direto no navegador',
+  'Pagamento único: nada de mensalidade',
+  'Acesso liberado na hora'
+];
+
+const FAQS = [
+  { q: 'Preciso instalar alguma coisa?', a: 'Não. O BodyComp funciona no navegador do computador e do celular. É só entrar com seu login.' },
+  { q: 'Como recebo o acesso?', a: 'Por e-mail, assim que o pagamento é aprovado. No Pix, a aprovação sai em poucos minutos.' },
+  { q: 'Pago mensalidade depois?', a: 'Não. Você paga R$ 97,90 uma única vez e o acesso é vitalício.' },
+  { q: 'E se eu não gostar?', a: 'Você tem 7 dias de garantia. É só pedir o reembolso pela Kiwify e recebe 100% do valor de volta.' }
+];
+
+const LOADING_MESSAGES = ['Analisando suas respostas...', 'Calculando horas perdidas...', 'Montando seu diagnóstico...'];
+
+// --- Animations ---
+const cardVariants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 140, damping: 20 } },
+  exit: { opacity: 0, y: -16, transition: { duration: 0.2 } }
+};
+
+const stripLetter = (label) => label.replace(/^[A-D]\)\s*/, '');
 
 const BackgroundNodes = () => (
   <div className="bg-nodes">
@@ -171,53 +201,76 @@ const BackgroundNodes = () => (
   </div>
 );
 
+const Logo = ({ large = false }) => (
+  <img src={LOGO_SRC} alt="BodyComp - Nutrição Inteligente" className={`brand-logo${large ? ' lg' : ''}`} width="405" height="96" />
+);
+
 export default function App() {
   const [scene, setScene] = useState(0);
   const [answers, setAnswers] = useState({});
-  const [showVslButton, setShowVslButton] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState(false);
   const [showMicroInsight, setShowMicroInsight] = useState(false);
-  const [activePillar, setActivePillar] = useState(null);
+  const [loadingStep, setLoadingStep] = useState(0);
+  const [activeShot, setActiveShot] = useState(0);
+  const [showStickyCta, setShowStickyCta] = useState(false);
+  const offerRef = useRef(null);
+
+  // Sobe para o topo a cada troca de tela (no celular a tela anterior podia ficar rolada)
+  useEffect(() => {
+    window.scrollTo({ top: 0 });
+  }, [scene, showMicroInsight]);
 
   // Auto-progress from loading scene
   useEffect(() => {
     if (scene === 8) {
+      setLoadingStep(0);
+      const stepTimer = setInterval(() => setLoadingStep(prev => Math.min(prev + 1, LOADING_MESSAGES.length - 1)), 1300);
       const timer = setTimeout(() => {
         setScene(9);
       }, 4000);
-      return () => clearTimeout(timer);
+      return () => { clearTimeout(timer); clearInterval(stepTimer); };
     }
   }, [scene]);
 
-  // VSL Button Delay
   useEffect(() => {
     if (scene === 9) {
       track('ViewContent', { content_name: 'BodyComp', value: 97.90, currency: 'BRL' });
-      const timer = setTimeout(() => {
-        setShowVslButton(true);
-      }, 5000); // 5 seconds delay for demo
-      return () => clearTimeout(timer);
     }
+  }, [scene]);
+
+  // Barra fixa de compra: aparece depois do diagnóstico e some quando a oferta está na tela
+  useEffect(() => {
+    if (scene !== 9) return;
+    const onScroll = () => {
+      const offer = offerRef.current?.getBoundingClientRect();
+      const offerVisible = offer && offer.top < window.innerHeight && offer.bottom > 0;
+      setShowStickyCta(window.scrollY > 500 && !offerVisible);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, [scene]);
 
   const handleSelect = (questionId, optionId) => {
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
-    
+
     // Check if it's question 4 to show micro-insight
     if (questionId === 'q4') {
-      setShowMicroInsight(true);
+      setTimeout(() => setShowMicroInsight(true), 250);
       setTimeout(() => {
         setShowMicroInsight(false);
         setScene(prev => prev + 1);
-      }, 4000);
+      }, 4250);
     } else {
       setTimeout(() => {
         setScene(prev => prev + 1);
-      }, 400);
+      }, 350);
     }
   };
+
+  const goBack = () => setScene(prev => Math.max(0, prev - 1));
 
   const sendLead = () => {
     if (!LEADS_WEBHOOK_URL) return;
@@ -274,433 +327,396 @@ export default function App() {
   };
 
   const profile = calculateProfile();
+  const diagnosis = DIAGNOSIS[profile];
+  const isQuestion = scene > 0 && scene < 7 && !showMicroInsight;
+  const question = isQuestion ? QUIZ_QUESTIONS[scene - 1] : null;
+
+  const handleShotsScroll = (e) => {
+    const row = e.currentTarget;
+    const first = row.firstElementChild;
+    if (!first) return;
+    const step = first.getBoundingClientRect().width + 12;
+    setActiveShot(Math.min(SCREENSHOTS.length - 1, Math.round(row.scrollLeft / step)));
+  };
+
+  const CheckoutButton = ({ className = '', children }) => (
+    <a
+      href={checkoutHref()}
+      onClick={() => track('ClickCheckout', {}, true)}
+      className={`btn-primary ${className}`}
+    >
+      {children}
+    </a>
+  );
 
   return (
     <>
       <BackgroundNodes />
-      
+
       <main className="app-container">
-        
-        {/* Progress Bar for Quiz Questions */}
-        {scene > 0 && scene < 7 && !showMicroInsight && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="progress-container"
-          >
-            <div 
-              className="progress-bar" 
-              style={{ width: `${(scene / 6) * 100}%` }}
-            ></div>
-          </motion.div>
+
+        {/* Topo das perguntas: voltar, contador e progresso */}
+        {isQuestion && (
+          <>
+            <div className="topbar">
+              <button className="back-btn" onClick={goBack} aria-label="Voltar para a pergunta anterior">
+                <ChevronLeft size={18} /> Voltar
+              </button>
+              <span className="step-label">Pergunta {scene} de {QUESTION_COUNT}</span>
+            </div>
+            <div className="progress-container" aria-hidden="true">
+              <div className="progress-bar" style={{ width: `${(scene / QUESTION_COUNT) * 100}%` }}></div>
+            </div>
+          </>
+        )}
+
+        {!isQuestion && scene !== 8 && (
+          <div className="topbar" style={{ justifyContent: 'center' }}>
+            <Logo large={scene === 0} />
+          </div>
         )}
 
         <AnimatePresence mode="wait">
-          
+
           {/* SCENE 0: WELCOME */}
           {scene === 0 && (
-            <motion.div 
+            <motion.section
               key="scene0"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="glass-card"
+              className="card center"
             >
-              <div style={{ perspective: '1000px' }}>
-                <motion.div 
-                  animate={{ 
-                    y: [0, -10, 0],
-                    rotateZ: [-1, 1, -1]
-                  }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <h1 className="logo">Body<span className="logo-green">Comp</span></h1>
-                </motion.div>
-              </div>
-
-              <h2 className="gradient-text" style={{ fontSize: '2rem', marginBottom: '1.5rem', lineHeight: 1.2 }}>
-                Descubra qual gargalo silencioso está consumindo o lucro do seu consultório (e como estancar isso).
-              </h2>
-              
-              <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2.5rem', lineHeight: 1.6 }}>
-                Responda a estas 6 perguntas rápidas e veja se você está operando no verde ou deixando dinheiro na mesa todos os meses.
+              <span className="eyebrow"><Sparkles size={14} /> Diagnóstico gratuito</span>
+              <h1 className="title">
+                Descubra o que está <span className="hl">travando o lucro</span> do seu consultório
+              </h1>
+              <p className="lead" style={{ marginTop: 12 }}>
+                Responda 6 perguntas rápidas e veja se você está operando no verde ou deixando dinheiro na mesa todo mês.
               </p>
 
+              <div className="hero-shot" aria-hidden="true">
+                <div className="hero-shot-bar"><span></span><span></span><span></span></div>
+                <img src={SCREENSHOTS[0]} alt="" width="1920" height="1080" fetchPriority="high" />
+              </div>
+
               <button
-                className="btn-primary btn-sticky-mobile"
+                className="btn-primary pulse"
                 onClick={() => {
                   track('QuizStart', {}, true);
                   setScene(1);
                 }}
               >
-                Iniciar Diagnóstico Gratuito <ArrowRight size={20} />
+                Começar meu diagnóstico <ArrowRight size={20} />
               </button>
-            </motion.div>
+
+              <div className="trust-row">
+                <span><Check size={16} /> 6 perguntas</span>
+                <span><Clock size={16} /> Menos de 1 minuto</span>
+                <span><Check size={16} /> Resultado na hora</span>
+              </div>
+            </motion.section>
           )}
 
           {/* MICRO-INSIGHT */}
           {showMicroInsight && (
-            <motion.div 
+            <motion.section
               key="micro-insight"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="glass-card"
+              className="card center"
             >
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                <ShieldCheck size={48} color="var(--electric-blue)" />
-              </div>
-              <h3 style={{ fontSize: '1.5rem', color: 'var(--navy)' }}>Processando...</h3>
-              <p style={{ fontSize: '1.2rem', color: '#475569', marginTop: '1rem', lineHeight: 1.6 }}>
-                Sabia que a maioria dos nutricionistas gasta, em 3 anos, o equivalente a um equipamento de ponta só pagando 'aluguel' de software que subutiliza?
+              <div className="insight-icon"><Lightbulb size={28} /></div>
+              <span className="eyebrow">Você sabia?</span>
+              <p className="question" style={{ fontWeight: 700 }}>
+                A maioria dos nutricionistas gasta, em 3 anos, o equivalente a um equipamento de ponta só pagando "aluguel" de software que subutiliza.
               </p>
-            </motion.div>
+              <div className="timer-track"><div className="timer-fill"></div></div>
+            </motion.section>
           )}
 
           {/* SCENES 1-6: QUIZ QUESTIONS */}
-          {scene > 0 && scene < 7 && !showMicroInsight && (
-            <motion.div 
+          {isQuestion && (
+            <motion.section
               key={`scene${scene}`}
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="glass-card"
+              className="card"
             >
-              <h2 className="gradient-text" style={{ marginBottom: '0.5rem', fontSize: '1.5rem' }}>
-                {QUIZ_QUESTIONS[scene - 1].headline}
-              </h2>
-              {QUIZ_QUESTIONS[scene - 1].subheadline && (
-                <p style={{ color: '#64748B', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                  {QUIZ_QUESTIONS[scene - 1].subheadline}
-                </p>
-              )}
-              {!QUIZ_QUESTIONS[scene - 1].subheadline && <div style={{ marginBottom: '1.5rem' }}></div>}
+              <h2 className="question">{question.headline}</h2>
+              {question.subheadline && <p className="muted" style={{ marginTop: 6 }}>{question.subheadline}</p>}
 
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {QUIZ_QUESTIONS[scene - 1].options.map((opt, idx) => {
-                  const isSelected = answers[QUIZ_QUESTIONS[scene - 1].id] === opt.id;
-                  const Icon = opt.icon;
-                  
+              <div className="options" role="list">
+                {question.options.map((opt, idx) => {
+                  const isSelected = answers[question.id] === opt.id;
                   return (
-                    <motion.div
+                    <motion.button
                       key={opt.id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.1 }}
+                      type="button"
+                      role="listitem"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.05 }}
                       className={`option-card ${isSelected ? 'selected' : ''}`}
-                      onClick={() => handleSelect(QUIZ_QUESTIONS[scene - 1].id, opt.id)}
+                      onClick={() => handleSelect(question.id, opt.id)}
                     >
-                      {Icon && (
-                        <div className="option-icon">
-                          <Icon size={24} />
-                        </div>
-                      )}
-                      <span style={{ fontWeight: 500, fontSize: '1.05rem', color: isSelected ? 'var(--navy)' : 'var(--navy)' }}>
-                        {opt.label}
-                      </span>
-                    </motion.div>
+                      <span className="option-letter">{isSelected ? <Check size={16} /> : opt.id.toUpperCase()}</span>
+                      <span>{stripLetter(opt.label)}</span>
+                    </motion.button>
                   );
                 })}
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
           {/* SCENE 7: EMAIL CAPTURE */}
           {scene === 7 && (
-            <motion.div 
+            <motion.section
               key="scene7"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="glass-card"
+              className="card center"
             >
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                <div style={{ background: 'rgba(37, 99, 235, 0.1)', padding: '1rem', borderRadius: '50%' }}>
-                  <Mail size={40} color="var(--electric-blue)" />
-                </div>
-              </div>
-              <h2 className="gradient-text" style={{ fontSize: '1.6rem', marginBottom: '1rem' }}>
-                Seu diagnóstico está pronto.
+              <span className="eyebrow"><Check size={14} /> Diagnóstico pronto</span>
+              <h2 className="title" style={{ fontSize: 'clamp(1.45rem, 5vw, 1.9rem)' }}>
+                Descobrimos onde está o <span className="hl">vazamento</span> do seu consultório
               </h2>
-              <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2rem', lineHeight: 1.5 }}>
-                Descobrimos onde está o vazamento financeiro do seu consultório. Onde podemos te enviar o diagnóstico e tirar suas dúvidas?
+              <p className="lead" style={{ marginTop: 10 }}>
+                Diga para onde enviamos o seu diagnóstico. Se ficar alguma dúvida, você fala direto com a gente.
               </p>
 
-              <form onSubmit={handleLeadSubmit}>
-                <input
-                  type="email"
-                  name="email"
-                  autoComplete="email"
-                  className="email-input"
-                  style={{ marginBottom: '1rem' }}
-                  placeholder="seu.melhor@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-                <input
-                  type="tel"
-                  name="phone"
-                  autoComplete="tel"
-                  inputMode="tel"
-                  className="email-input"
-                  style={{ marginBottom: phoneError ? '0.5rem' : '1.5rem' }}
-                  placeholder="WhatsApp com DDD: (73) 99999-9999"
-                  value={phone}
-                  onChange={(e) => { setPhone(e.target.value); setPhoneError(false); }}
-                  required
-                />
-                {phoneError && (
-                  <p style={{ color: '#DC2626', fontSize: '0.9rem', marginBottom: '1.5rem', textAlign: 'left' }}>
-                    Digite seu WhatsApp com DDD. Ex.: (73) 99999-9999
-                  </p>
-                )}
-                <button type="submit" className="btn-primary" style={{ width: '100%' }}>
-                  Ver Meu Resultado Agora <ArrowRight size={20} />
+              <div className="locked-preview" aria-hidden="true">
+                <div className="line w90"></div>
+                <div className="line w60"></div>
+                <div className="line w80"></div>
+                <div className="locked-badge"><Lock size={16} /> Seu diagnóstico personalizado</div>
+              </div>
+
+              <form onSubmit={handleLeadSubmit} noValidate={false}>
+                <div className="field">
+                  <label htmlFor="lead-email">Seu melhor e-mail</label>
+                  <input
+                    id="lead-email"
+                    type="email"
+                    name="email"
+                    autoComplete="email"
+                    className="email-input"
+                    placeholder="voce@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="lead-phone">WhatsApp com DDD</label>
+                  <input
+                    id="lead-phone"
+                    type="tel"
+                    name="phone"
+                    autoComplete="tel"
+                    inputMode="tel"
+                    className={`email-input${phoneError ? ' invalid' : ''}`}
+                    placeholder="(73) 99999-9999"
+                    value={phone}
+                    onChange={(e) => { setPhone(e.target.value); setPhoneError(false); }}
+                    aria-invalid={phoneError}
+                    required
+                  />
+                  {phoneError && (
+                    <p className="field-error">Digite seu WhatsApp com DDD. Ex.: (73) 99999-9999</p>
+                  )}
+                </div>
+                <button type="submit" className="btn-primary" style={{ marginTop: 6 }}>
+                  Ver meu diagnóstico <ArrowRight size={20} />
                 </button>
               </form>
-            </motion.div>
+              <p className="privacy-note"><Lock size={13} /> Seus dados ficam só com a BodyComp. Nada de spam.</p>
+            </motion.section>
           )}
 
           {/* SCENE 8: LOADING TRANSITION */}
           {scene === 8 && (
-            <motion.div 
+            <motion.section
               key="scene8"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="glass-card"
-              style={{ padding: '4rem 2rem' }}
+              className="card center"
             >
               <div className="loader-container">
                 <div className="spinner"></div>
-                
-                <motion.h1 
-                  className="logo"
-                  animate={{ scale: [1, 1.05, 1], opacity: [0.7, 1, 0.7] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  Body<span className="logo-green">Comp</span>
-                </motion.h1>
-                
-                <div style={{ height: '60px', marginTop: '1rem' }}>
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key="text1"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.5 }}
-                      style={{ fontSize: '1.2rem', color: 'var(--electric-blue)', fontWeight: 500 }}
-                    >
-                      Calculando horas perdidas...
-                    </motion.p>
-                  </AnimatePresence>
-                </div>
+                <Logo />
+                <AnimatePresence mode="wait">
+                  <motion.p
+                    key={loadingStep}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.3 }}
+                    className="lead"
+                    style={{ fontWeight: 600, color: 'var(--brand)' }}
+                  >
+                    {LOADING_MESSAGES[loadingStep]}
+                  </motion.p>
+                </AnimatePresence>
               </div>
-            </motion.div>
+            </motion.section>
           )}
 
           {/* SCENE 9: RESULT PAGE (PITCH) */}
           {scene === 9 && (
-            <motion.div 
+            <motion.div
               key="scene9"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
-              className="glass-card result-card"
+              className="result-wrap"
             >
-              <motion.div 
-                animate={{ y: [0, -5, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                style={{ marginBottom: '1rem' }}
-              >
-                <h1 className="logo" style={{ fontSize: '2.5rem', textShadow: '0 0 20px rgba(132, 204, 22, 0.3)' }}>
-                  Body<span className="logo-green">Comp</span>
-                </h1>
-              </motion.div>
+              {/* Diagnóstico */}
+              <section className="card">
+                <span className="eyebrow">Seu diagnóstico</span>
+                <h1 className="title" style={{ fontSize: 'clamp(1.45rem, 5vw, 2rem)' }}>{diagnosis.title}</h1>
+                <ul className="diagnosis-list">
+                  {diagnosis.points.map((point, idx) => (
+                    <li key={idx}><span className="dot"><Check size={15} /></span><span>{point}</span></li>
+                  ))}
+                </ul>
+              </section>
 
-              <h2 className="gradient-text" style={{ fontSize: '1.8rem', lineHeight: 1.3 }}>
-                {profile === 'A' 
-                  ? "Seu diagnóstico revela um vazamento financeiro invisível no seu consultório."
-                  : "Seu diagnóstico revela um gargalo de tempo que está limitando sua escala."
-                }
-              </h2>
-              
-              <div style={{ 
-                background: 'rgba(239, 246, 255, 0.5)', 
-                padding: '1.5rem', 
-                borderRadius: '16px', 
-                border: '1px solid rgba(147, 197, 253, 0.5)',
-                marginBottom: '2rem',
-                textAlign: 'left'
-              }}>
-                {profile === 'A' ? (
-                  <>
-                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong>Resumo:</strong> Pelas suas respostas, fica claro que você já entende a importância da tecnologia e usa um sistema para organizar seus atendimentos. O problema? Você está pagando o preço de um "aluguel" eterno por um pacote de dezenas de funcionalidades que nem tem tempo de usar.
-                    </p>
-                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong style={{ color: 'var(--lime-green)' }}>A Descoberta:</strong> O modelo de assinaturas mensais não foi criado para ser eficiente para você; foi criado para garantir lucro recorrente para as empresas de software. A cada mês, uma parte considerável do seu lucro fica retida na mensalidade.
-                    </p>
-                    <p style={{ color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong>O Próximo Passo:</strong> Seu próximo passo não é buscar um software "mais barato". É adotar um modelo focado em <em>posse</em>, e não em aluguel. Imagine usar 100% dos recursos que importam sem nunca mais se preocupar com aquele débito no cartão todo mês.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong>Resumo:</strong> Suas respostas mostram que você é um profissional cuidadoso, mas que está perdendo horas preciosas com trabalhos manuais. Você evita softwares pagos porque as mensalidades são altas, e acaba compensando isso montando dietas do zero em planilhas.
-                    </p>
-                    <p style={{ marginBottom: '1rem', color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong style={{ color: 'var(--lime-green)' }}>A Descoberta:</strong> Você acredita que está economizando dinheiro ao não pagar uma mensalidade, mas o custo real está no seu <em>tempo</em>. A lentidão para calcular macros atrasa a entrega da dieta, e você paga isso com a sua energia.
-                    </p>
-                    <p style={{ color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong>O Próximo Passo:</strong> Profissionalizar sua operação de ponta a ponta, sem assumir um custo fixo mensal. Imagine agenda, anamnese, avaliação e dieta no mesmo lugar, com a antropometria e os macros calculados em poucos cliques. Tudo sem pagar um centavo a mais por mês.
-                    </p>
-                  </>
-                )}
-              </div>
-
-              <h3 style={{ fontSize: '1.4rem', color: 'var(--navy)', marginBottom: '1rem' }}>
-                Foi exatamente para estancar esse vazamento que o BodyComp foi criado.
-              </h3>
-              <p style={{ color: '#475569', marginBottom: '2rem' }}>
-                O mercado te disse que você precisava pagar mensalidades caras para ter um consultório profissional. Nós mudamos as regras. O BodyComp é o seu software de nutrição definitivo, focado no que realmente importa, com <strong>pagamento único</strong> e acesso vitalício.
-              </p>
-
-              {/* VSL */}
-              <div className="video-embed">
-                <iframe
-                  loading="lazy"
-                  src={`https://www.youtube-nocookie.com/embed/${DEMO_VIDEO_ID}?rel=0&modestbranding=1`}
-                  title="Apresentação do BodyComp"
-                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                ></iframe>
-              </div>
-
-              {/* Real software screenshots */}
-              <h3 style={{ marginTop: '2.5rem', fontSize: '1.3rem', color: 'var(--electric-blue)' }}>Veja o BodyComp por dentro:</h3>
-              <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: '0.25rem' }}>Arraste para o lado para ver mais telas.</p>
-              <div className="screens-row">
-                {SCREENSHOTS.map((src, idx) => (
-                  <img
-                    key={src}
-                    src={src}
-                    alt={`Tela do BodyComp ${idx + 1}`}
-                    width="1920"
-                    height="1080"
+              {/* Produto */}
+              <section className="card">
+                <h2 className="section-title">Foi para resolver isso que o BodyComp foi criado</h2>
+                <p className="lead">
+                  Um software de nutrição focado no que você usa todo dia, com <strong>pagamento único</strong> e acesso vitalício. Veja como funciona:
+                </p>
+                <div className="video-embed">
+                  <iframe
                     loading="lazy"
-                  />
-                ))}
-              </div>
+                    src={`https://www.youtube-nocookie.com/embed/${DEMO_VIDEO_ID}?rel=0&modestbranding=1`}
+                    title="Apresentação do BodyComp"
+                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  ></iframe>
+                </div>
 
-              {/* 3D Pillars Interactive Area */}
-              <h3 style={{ marginTop: '3rem', fontSize: '1.3rem', color: 'var(--electric-blue)' }}>Como o BodyComp transforma sua rotina:</h3>
-              <div className="pillars-grid">
-                {PILLARS.map((pillar) => {
-                  const Icon = pillar.icon;
-                  const isActive = activePillar === pillar.id;
-                  return (
-                    <motion.div 
-                      key={pillar.id}
-                      className="pillar-card"
-                      onClick={() => setActivePillar(isActive ? null : pillar.id)}
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                    >
-                      <div className="pillar-header">
-                        <div className="pillar-icon">
-                          <Icon size={20} />
+                <h3 className="section-title" style={{ marginTop: 26, fontSize: '1.15rem' }}>Veja o BodyComp por dentro</h3>
+                <div className="screens-row" onScroll={handleShotsScroll}>
+                  {SCREENSHOTS.map((src, idx) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`Tela do BodyComp ${idx + 1}`}
+                      width="1920"
+                      height="1080"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+                <div className="dots" aria-hidden="true">
+                  {SCREENSHOTS.map((src, idx) => <span key={src} className={idx === activeShot ? 'active' : ''}></span>)}
+                </div>
+              </section>
+
+              {/* Pilares */}
+              <section className="card">
+                <h2 className="section-title">Tudo o que a sua rotina precisa, num lugar só</h2>
+                <div className="pillars-grid">
+                  {PILLARS.map((pillar) => {
+                    const Icon = pillar.icon;
+                    return (
+                      <div key={pillar.id} className="pillar-card">
+                        <div className="pillar-header">
+                          <div className="pillar-icon"><Icon size={18} /></div>
+                          <span className="pillar-title">{pillar.title}</span>
                         </div>
-                        <span className="pillar-title">{pillar.title}</span>
-                        <ChevronDown size={20} color="#94A3B8" style={{ marginLeft: 'auto', transform: isActive ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }} />
+                        <p>{pillar.after}</p>
                       </div>
-                      
-                      <AnimatePresence>
-                        {isActive && (
-                          <motion.div 
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="pillar-content"
-                          >
-                            <p style={{ marginBottom: '0.5rem', color: '#64748B' }}><em>Antes: {pillar.before}</em></p>
-                            <p><strong>Com BodyComp:</strong> {pillar.after}</p>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  )
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              </section>
 
-              {/* Delayed CTA Button */}
-              <AnimatePresence>
-                {showVslButton && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                    style={{ marginTop: '3rem' }}
-                  >
-                    <div style={{ background: '#FFFBEB', padding: '1rem', borderRadius: '8px', borderLeft: '4px solid #F59E0B', marginBottom: '1.5rem', textAlign: 'left' }}>
-                      <p style={{ fontSize: '0.95rem', color: '#B45309' }}>
-                        Softwares que entregam metade dessas integrações cobram facilmente de R$ 100 a R$ 250 por mês. No final de um ano, você deixou mais de R$ 1.500 na mesa deles. <strong>Com o BodyComp, você faz um pagamento único.</strong>
-                      </p>
-                    </div>
+              {/* Oferta */}
+              <section className="card offer-card" ref={offerRef} id="oferta">
+                <div className="offer-ribbon">Acesso vitalício</div>
+                <div className="offer-body">
+                  <h2 className="section-title" style={{ textAlign: 'center' }}>Pague uma vez. Use para sempre.</h2>
+                  <p className="anchor-note">
+                    Softwares de nutrição por assinatura cobram <strong>todo mês</strong>: em um ano, isso vira centenas de reais. No BodyComp você paga uma única vez.
+                  </p>
+                  <ul className="checklist">
+                    {OFFER_ITEMS.map(item => <li key={item}><Check size={18} /> {item}</li>)}
+                  </ul>
+                  <div className="price-box">
+                    <span className="price-label">Pagamento único</span>
+                    <span className="price-value">R$ 97,90</span>
+                    <span className="price-installments">ou em até 12x de R$ 10,13 no cartão</span>
+                  </div>
+                  <CheckoutButton className="pulse">
+                    Quero meu acesso vitalício <ArrowRight size={22} />
+                  </CheckoutButton>
+                  <p className="pay-methods">Pix, cartão ou boleto · Compra segura pela Kiwify</p>
+                  <div className="guarantee">
+                    <ShieldCheck size={28} />
+                    <p><strong>Garantia de 7 dias.</strong> Teste com seus pacientes. Se não gostar, devolvemos 100% do valor.</p>
+                  </div>
+                </div>
+              </section>
 
-                    <div className="price-box">
-                      <span className="price-label">Pagamento único</span>
-                      <span className="price-value">R$ 97,90</span>
-                      <span className="price-installments">ou em até 12x de R$ 10,13 no cartão</span>
-                    </div>
+              {/* Dúvidas */}
+              <section className="card faq">
+                <h2 className="section-title" style={{ marginBottom: 4 }}>Perguntas frequentes</h2>
+                {FAQS.map(item => (
+                  <details key={item.q}>
+                    <summary>{item.q} <ChevronDown size={18} /></summary>
+                    <p>{item.a}</p>
+                  </details>
+                ))}
+              </section>
 
-                    <a
-                      href={checkoutHref()}
-                      onClick={() => track('ClickCheckout', {}, true)}
-                      className="btn-primary"
-                      style={{ width: '100%', padding: '1.25rem', fontSize: '1.1rem', marginBottom: '0.5rem', textDecoration: 'none' }}
-                    >
-                      Quero Meu Acesso Definitivo ao BodyComp (Sem Mensalidades) <ArrowRight size={24} />
-                    </a>
-
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
-                      <ShieldCheck size={20} color="var(--lime-green)" />
-                      <p style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>
-                        Garantia de 7 dias. Pague uma vez, receba acesso imediato.
-                      </p>
-                    </div>
-
-                    {/* Support Section */}
-                    <div className="support-section">
-                      <p style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '0.5rem' }}>
-                        Ficou com alguma dúvida sobre o acesso vitalício? Fale com a nossa equipe.
-                      </p>
-                      <a
-                        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Oi! Fiz o diagnóstico do BodyComp e fiquei com uma dúvida:')}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="whatsapp-btn"
-                      >
-                        Falar no WhatsApp (73) 98157-9948
-                      </a>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              
+              <section className="support-section">
+                <p className="muted">Ficou com alguma dúvida? Fale com a nossa equipe.</p>
+                <a
+                  href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Oi! Fiz o diagnóstico do BodyComp e fiquei com uma dúvida:')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="whatsapp-btn"
+                >
+                  <MessageCircle size={18} /> Falar no WhatsApp
+                </a>
+              </section>
             </motion.div>
           )}
 
         </AnimatePresence>
       </main>
+
+      {/* Barra fixa de compra no celular */}
+      <AnimatePresence>
+        {scene === 9 && showStickyCta && (
+          <motion.div
+            className="sticky-cta"
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+          >
+            <div className="sticky-price">
+              <strong>R$ 97,90</strong>
+              <span>vitalício · 12x R$ 10,13</span>
+            </div>
+            <CheckoutButton>Quero meu acesso <ArrowRight size={18} /></CheckoutButton>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
