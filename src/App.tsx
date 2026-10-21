@@ -13,6 +13,7 @@ import {
   Lightbulb,
   Lock,
   MessageCircle,
+  Play,
   ShieldCheck,
   Sparkles
 } from 'lucide-react';
@@ -25,7 +26,13 @@ const QUESTION_COUNT = 6;
 // O InitiateCheckout é disparado pela própria Kiwify ao abrir o checkout.
 const CHECKOUT_URL = "https://pay.kiwify.com.br/chRzTuK";
 const WHATSAPP_NUMBER = "5573981579948";
-const DEMO_VIDEO_ID = "4jDG9i7AR1Q";
+// Vídeo hospedado no próprio site (public/video), sem YouTube: 720p no celular, 1080p em telas grandes.
+// preload="none": nada é baixado até a pessoa tocar no play.
+const DEMO_VIDEO = {
+  poster: "/video/bodycomp-capa.webp",
+  hd: "/video/bodycomp-1080p.mp4",
+  sd: "/video/bodycomp-720p.mp4",
+};
 const LOGO_SRC = "/logo-horizontal.webp";
 
 // URL do Apps Script que grava os leads na planilha (ver docs/leads-google-sheets.md).
@@ -204,6 +211,39 @@ const BackgroundNodes = () => (
 const Logo = ({ large = false }) => (
   <img src={LOGO_SRC} alt="BodyComp - Nutrição Inteligente" className={`brand-logo${large ? ' lg' : ''}`} width="405" height="96" />
 );
+
+const DemoVideo = () => {
+  const videoRef = useRef(null);
+  const [started, setStarted] = useState(false);
+
+  const start = () => {
+    setStarted(true);
+    videoRef.current?.play().catch(() => {});
+  };
+
+  return (
+    <div className="video-embed">
+      <video
+        ref={videoRef}
+        poster={DEMO_VIDEO.poster}
+        preload="none"
+        playsInline
+        controls={started}
+        controlsList="nodownload"
+        title="Apresentação do BodyComp"
+      >
+        <source media="(min-width: 900px)" src={DEMO_VIDEO.hd} type="video/mp4" />
+        <source src={DEMO_VIDEO.sd} type="video/mp4" />
+      </video>
+      {!started && (
+        <button type="button" className="video-play" onClick={start} aria-label="Assistir ao vídeo do BodyComp">
+          <span className="video-play-btn"><Play size={30} fill="currentColor" /></span>
+          <span className="video-play-label">Assistir · 1:32</span>
+        </button>
+      )}
+    </div>
+  );
+};
 
 export default function App() {
   const [scene, setScene] = useState(0);
@@ -597,15 +637,7 @@ export default function App() {
                 <p className="lead">
                   Um software de nutrição focado no que você usa todo dia, com <strong>pagamento único</strong> e acesso vitalício. Veja como funciona:
                 </p>
-                <div className="video-embed">
-                  <iframe
-                    loading="lazy"
-                    src={`https://www.youtube-nocookie.com/embed/${DEMO_VIDEO_ID}?rel=0&modestbranding=1`}
-                    title="Apresentação do BodyComp"
-                    allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  ></iframe>
-                </div>
+                <DemoVideo />
 
                 <h3 className="section-title" style={{ marginTop: 26, fontSize: '1.15rem' }}>Veja o BodyComp por dentro</h3>
                 <div className="screens-row" onScroll={handleShotsScroll}>
