@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,33 +26,34 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- Scripts de terceiros atrasados (Lazy execution) para baixar TBT -->
+    <!-- Meta Pixel: mesmo conjunto de dados que a Kiwify usa no checkout (Pixel Kiwify BodyCompp) -->
     <script>
+      window.metaPixelId = "26887854514238733";
+
+      // Fila do fbq criada na hora: os eventos esperam aqui até a biblioteca carregar
+      !function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
+      fbq('init', window.metaPixelId);
+      fbq('track', 'PageView');
+
+      // Scripts de terceiros atrasados (Lazy execution) para baixar TBT
       function loadScripts() {
         if (window.scriptsLoaded) return;
         window.scriptsLoaded = true;
-        
-        window.pixelId = "6a0e046aae0123d733f13e48";
+
         var a = document.createElement("script");
         a.setAttribute("async", "true");
-        a.setAttribute("src", "https://cdn.utmify.com.br/scripts/pixel/pixel.js");
+        a.setAttribute("src", "https://connect.facebook.net/en_US/fbevents.js");
         document.body.appendChild(a);
-
-        var b = document.createElement("script");
-        b.setAttribute("async", "true");
-        b.setAttribute("src", "https://cdn.utmify.com.br/scripts/utms/latest.js");
-        b.setAttribute("data-utmify-prevent-xcod-sck", "");
-        b.setAttribute("data-utmify-prevent-subids", "");
-        document.body.appendChild(b);
       }
 
-      ['scroll', 'mousemove', 'touchstart'].forEach(function(event) {
+      ['scroll', 'mousemove', 'touchstart', 'click'].forEach(function(event) {
         window.addEventListener(event, loadScripts, { once: true });
       });
-      
-      // Fallback em 8 segundos
-      setTimeout(loadScripts, 8000);
+
+      // Fallback em 3 segundos (curto para não perder o PageView de quem sai rápido)
+      setTimeout(loadScripts, 3000);
     </script>
+    <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=26887854514238733&ev=PageView&noscript=1" /></noscript>
   </body>
 </html>
 

@@ -6,7 +6,6 @@ import {
   Utensils, 
   Activity, 
   ArrowRight,
-  Play,
   Mail,
   ShieldCheck,
   ChevronDown
@@ -15,6 +14,43 @@ import './index.css';
 
 // --- Configuration & Data ---
 const SCENES = 10; // 0 (Welcome), 1-6 (Questions), 7 (Email), 8 (Processing), 9 (Result)
+
+// O InitiateCheckout é disparado pela própria Kiwify ao abrir o checkout.
+const CHECKOUT_URL = "https://pay.kiwify.com.br/chRzTuK";
+const WHATSAPP_NUMBER = "5573981579948";
+const DEMO_VIDEO_ID = "4jDG9i7AR1Q";
+
+// URL do Apps Script que grava os leads na planilha (ver docs/leads-google-sheets.md).
+// Vazio = o quiz funciona normalmente, mas não salva os leads.
+const LEADS_WEBHOOK_URL = "";
+
+const SCREENSHOTS = [
+  "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp",
+  "https://i.postimg.cc/3JXL7cKt/Captura-de-tela-2026-05-21-143421.webp",
+  "https://i.postimg.cc/yYmfBbVp/Captura-de-tela-2026-05-21-143528.webp",
+  "https://i.postimg.cc/qMsm05km/Captura-de-tela-2026-05-21-143637.webp",
+  "https://i.postimg.cc/qMsm05kb/Captura-de-tela-2026-05-21-143659.webp"
+];
+
+const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
+// Repassados ao checkout: UTMs para os relatórios da Kiwify e fbclid para a Meta atribuir a venda ao anúncio
+const CHECKOUT_PASSTHROUGH_KEYS = [...UTM_KEYS, 'fbclid', 'src', 'sck'];
+
+// Meta Pixel carregado no index.html
+const track = (event, params = {}, custom = false) => {
+  if (typeof window.fbq !== 'function') return;
+  window.fbq(custom ? 'trackCustom' : 'track', event, params);
+};
+
+const checkoutHref = () => {
+  const current = new URLSearchParams(window.location.search);
+  const url = new URL(CHECKOUT_URL);
+  CHECKOUT_PASSTHROUGH_KEYS.forEach(key => {
+    const value = current.get(key);
+    if (value) url.searchParams.set(key, value);
+  });
+  return url.toString();
+};
 
 const QUIZ_QUESTIONS = [
   {
@@ -80,31 +116,31 @@ const QUIZ_QUESTIONS = [
 const PILLARS = [
   {
     id: 'agendamento',
-    title: 'Agendamento Inteligente',
+    title: 'Agenda da Clínica',
     icon: Calendar,
-    before: 'Troca dezenas de mensagens no WhatsApp para achar um horário e ainda sofre com pacientes que esquecem da consulta.',
-    after: 'Com a nossa gestão inteligente de confirmações automáticas, você reduz drasticamente as faltas e mantém a agenda lotada e organizada, sem esforço manual.'
+    before: 'Horários anotados no caderno ou espalhados no WhatsApp, e você só descobre o conflito na hora.',
+    after: 'Veja todas as consultas do mês num calendário só, lance agendamentos em segundos e acompanhe os retornos de cada paciente.'
   },
   {
     id: 'anamnese',
     title: 'Anamnese Completa',
     icon: ClipboardList,
-    before: 'Gasta os primeiros 30 minutos da consulta fazendo perguntas básicas, deixando o paciente impaciente.',
-    after: 'Colete dados clínicos de forma estruturada antes mesmo do paciente pisar no consultório. Com questionários personalizáveis pré-consulta, você usa o tempo para gerar conexão.'
+    before: 'Anamnese no papel, que se perde na gaveta e não dá para consultar no retorno.',
+    after: 'Ficha completa e organizada: histórico clínico, medicamentos, alergias e intolerâncias, escala de Bristol, sono, estresse e hábitos. Tudo salvo no prontuário e pronto para imprimir.'
   },
   {
     id: 'prescricao',
     title: 'Prescrição de Dietas',
     icon: Utensils,
     before: 'Horas na frente do Excel cruzando tabelas de alimentos e somando macros.',
-    after: 'Realize cálculos automáticos em segundos. Acesse um banco de alimentos extenso e faça a montagem visual intuitiva de cardápios.'
+    after: 'Monte o cardápio com a Tabela TACO e medidas caseiras (escumadeira, concha, colher). Calorias, macros por refeição e g/kg calculados na hora.'
   },
   {
     id: 'avaliacao',
     title: 'Avaliações Físicas',
     icon: Activity,
     before: 'Anota medidas no papel e não consegue provar de forma visual que o paciente teve resultados.',
-    after: 'Faça o registro preciso de antropometria. Entregue gráficos evolutivos claros que aumentam a fidelização e mostram o verdadeiro valor do seu trabalho.'
+    after: 'Protocolo de 7 dobras, perimetria completa e fotos de frente e perfil. % de gordura, massa magra e TMB calculados na hora, com histórico e gráficos de evolução.'
   }
 ];
 
@@ -140,6 +176,8 @@ export default function App() {
   const [answers, setAnswers] = useState({});
   const [showVslButton, setShowVslButton] = useState(false);
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [phoneError, setPhoneError] = useState(false);
   const [showMicroInsight, setShowMicroInsight] = useState(false);
   const [activePillar, setActivePillar] = useState(null);
 
@@ -156,6 +194,7 @@ export default function App() {
   // VSL Button Delay
   useEffect(() => {
     if (scene === 9) {
+      track('ViewContent', { content_name: 'BodyComp', value: 97.90, currency: 'BRL' });
       const timer = setTimeout(() => {
         setShowVslButton(true);
       }, 5000); // 5 seconds delay for demo
@@ -180,10 +219,40 @@ export default function App() {
     }
   };
 
-  const handleEmailSubmit = (e) => {
+  const sendLead = () => {
+    if (!LEADS_WEBHOOK_URL) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const payload = {
+      email: email.trim(),
+      phone: phone.replace(/\D/g, ''),
+      profile: calculateProfile(),
+      answers: QUIZ_QUESTIONS.map(q => q.options.find(o => o.id === answers[q.id])?.label || ''),
+      page: window.location.href
+    };
+    UTM_KEYS.forEach(key => { payload[key] = params.get(key) || ''; });
+
+    // text/plain + no-cors evita o preflight de CORS do Apps Script
+    fetch(LEADS_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      keepalive: true,
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  };
+
+  const handleLeadSubmit = (e) => {
     e.preventDefault();
+    const digits = phone.replace(/\D/g, '');
+    if (digits.length < 10 || digits.length > 13) {
+      setPhoneError(true);
+      return;
+    }
     if (email.includes('@')) {
-      // In a real app, send to Supabase here
+      sendLead();
+      // E-mail e telefone vão para a Meta pela correspondência avançada automática (ligada no pixel)
+      track('Lead', { content_name: 'Diagnóstico BodyComp' });
       setScene(8); // Go to processing
     }
   };
@@ -258,7 +327,13 @@ export default function App() {
                 Responda a estas 6 perguntas rápidas e veja se você está operando no verde ou deixando dinheiro na mesa todos os meses.
               </p>
 
-              <button className="btn-primary btn-sticky-mobile" onClick={() => setScene(1)}>
+              <button
+                className="btn-primary btn-sticky-mobile"
+                onClick={() => {
+                  track('QuizStart', {}, true);
+                  setScene(1);
+                }}
+              >
                 Iniciar Diagnóstico Gratuito <ArrowRight size={20} />
               </button>
             </motion.div>
@@ -352,18 +427,38 @@ export default function App() {
                 Seu diagnóstico está pronto.
               </h2>
               <p style={{ fontSize: '1.1rem', color: '#475569', marginBottom: '2rem', lineHeight: 1.5 }}>
-                Descobrimos onde está o vazamento financeiro do seu consultório. Onde devemos enviar sua cópia e seu plano de ação?
+                Descobrimos onde está o vazamento financeiro do seu consultório. Onde podemos te enviar o diagnóstico e tirar suas dúvidas?
               </p>
 
-              <form onSubmit={handleEmailSubmit}>
-                <input 
-                  type="email" 
+              <form onSubmit={handleLeadSubmit}>
+                <input
+                  type="email"
+                  name="email"
+                  autoComplete="email"
                   className="email-input"
+                  style={{ marginBottom: '1rem' }}
                   placeholder="seu.melhor@email.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
+                <input
+                  type="tel"
+                  name="phone"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  className="email-input"
+                  style={{ marginBottom: phoneError ? '0.5rem' : '1.5rem' }}
+                  placeholder="WhatsApp com DDD: (73) 99999-9999"
+                  value={phone}
+                  onChange={(e) => { setPhone(e.target.value); setPhoneError(false); }}
+                  required
+                />
+                {phoneError && (
+                  <p style={{ color: '#DC2626', fontSize: '0.9rem', marginBottom: '1.5rem', textAlign: 'left' }}>
+                    Digite seu WhatsApp com DDD. Ex.: (73) 99999-9999
+                  </p>
+                )}
                 <button type="submit" className="btn-primary" style={{ width: '100%' }}>
                   Ver Meu Resultado Agora <ArrowRight size={20} />
                 </button>
@@ -418,8 +513,7 @@ export default function App() {
               variants={cardVariants}
               initial="hidden"
               animate="visible"
-              className="glass-card"
-              style={{ maxWidth: '900px', padding: '2rem 3rem' }}
+              className="glass-card result-card"
             >
               <motion.div 
                 animate={{ y: [0, -5, 0] }}
@@ -467,7 +561,7 @@ export default function App() {
                       <strong style={{ color: 'var(--lime-green)' }}>A Descoberta:</strong> Você acredita que está economizando dinheiro ao não pagar uma mensalidade, mas o custo real está no seu <em>tempo</em>. A lentidão para calcular macros atrasa a entrega da dieta, e você paga isso com a sua energia.
                     </p>
                     <p style={{ color: '#1E293B', lineHeight: 1.6 }}>
-                      <strong>O Próximo Passo:</strong> Profissionalizar sua operação de ponta a ponta, sem assumir um custo fixo mensal. Imagine a agenda enviando confirmações automáticas e você calculando a antropometria e os macros em poucos cliques. Tudo sem pagar um centavo a mais por mês.
+                      <strong>O Próximo Passo:</strong> Profissionalizar sua operação de ponta a ponta, sem assumir um custo fixo mensal. Imagine agenda, anamnese, avaliação e dieta no mesmo lugar, com a antropometria e os macros calculados em poucos cliques. Tudo sem pagar um centavo a mais por mês.
                     </p>
                   </>
                 )}
@@ -480,14 +574,31 @@ export default function App() {
                 O mercado te disse que você precisava pagar mensalidades caras para ter um consultório profissional. Nós mudamos as regras. O BodyComp é o seu software de nutrição definitivo, focado no que realmente importa, com <strong>pagamento único</strong> e acesso vitalício.
               </p>
 
-              {/* VSL Placeholder */}
-              <div className="video-placeholder">
-                <div className="play-icon">
-                  <Play fill="white" size={32} />
-                </div>
-                <span style={{ position: 'absolute', bottom: '1rem', right: '1rem', fontSize: '0.8rem', opacity: 0.8 }}>
-                  [Vídeo de Vendas - Aperte o Play]
-                </span>
+              {/* VSL */}
+              <div className="video-embed">
+                <iframe
+                  loading="lazy"
+                  src={`https://www.youtube-nocookie.com/embed/${DEMO_VIDEO_ID}?rel=0&modestbranding=1`}
+                  title="Apresentação do BodyComp"
+                  allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
+              </div>
+
+              {/* Real software screenshots */}
+              <h3 style={{ marginTop: '2.5rem', fontSize: '1.3rem', color: 'var(--electric-blue)' }}>Veja o BodyComp por dentro:</h3>
+              <p style={{ color: '#64748B', fontSize: '0.9rem', marginTop: '0.25rem' }}>Arraste para o lado para ver mais telas.</p>
+              <div className="screens-row">
+                {SCREENSHOTS.map((src, idx) => (
+                  <img
+                    key={src}
+                    src={src}
+                    alt={`Tela do BodyComp ${idx + 1}`}
+                    width="1920"
+                    height="1080"
+                    loading="lazy"
+                  />
+                ))}
               </div>
 
               {/* 3D Pillars Interactive Area */}
@@ -545,14 +656,21 @@ export default function App() {
                       </p>
                     </div>
 
-                    <button 
-                      className="btn-primary" 
-                      style={{ width: '100%', padding: '1.25rem', fontSize: '1.1rem', marginBottom: '0.5rem' }}
-                      onClick={() => window.location.href = "https://pay.kiwify.com.br/chRzTuK"}
+                    <div className="price-box">
+                      <span className="price-label">Pagamento único</span>
+                      <span className="price-value">R$ 97,90</span>
+                      <span className="price-installments">ou em até 12x de R$ 10,13 no cartão</span>
+                    </div>
+
+                    <a
+                      href={checkoutHref()}
+                      onClick={() => track('ClickCheckout', {}, true)}
+                      className="btn-primary"
+                      style={{ width: '100%', padding: '1.25rem', fontSize: '1.1rem', marginBottom: '0.5rem', textDecoration: 'none' }}
                     >
                       Quero Meu Acesso Definitivo ao BodyComp (Sem Mensalidades) <ArrowRight size={24} />
-                    </button>
-                    
+                    </a>
+
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginTop: '1rem' }}>
                       <ShieldCheck size={20} color="var(--lime-green)" />
                       <p style={{ fontSize: '0.9rem', color: '#64748B', fontWeight: 500 }}>
@@ -565,7 +683,12 @@ export default function App() {
                       <p style={{ fontSize: '0.9rem', color: '#64748B', marginBottom: '0.5rem' }}>
                         Ficou com alguma dúvida sobre o acesso vitalício? Fale com a nossa equipe.
                       </p>
-                      <a href="https://wa.me/5573981579948" target="_blank" rel="noreferrer" className="whatsapp-btn">
+                      <a
+                        href={`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent('Oi! Fiz o diagnóstico do BodyComp e fiquei com uma dúvida:')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="whatsapp-btn"
+                      >
                         Falar no WhatsApp (73) 98157-9948
                       </a>
                     </div>
