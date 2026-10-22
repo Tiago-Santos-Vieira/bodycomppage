@@ -232,6 +232,21 @@ img { max-width: 100%; display: block; }
 .hero-shot-bar span { width: 8px; height: 8px; border-radius: 50%; background: #cfd8d3; }
 .hero-shot img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; object-position: top left; }
 
+.hero-photo {
+  margin: 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 14px 34px rgba(18, 32, 27, 0.18);
+}
+.hero-photo img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover; object-position: 30% 40%; }
+.question-photo {
+  margin: -4px 0 18px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--brand-soft);
+}
+.question-photo img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 8; object-fit: cover; }
+
 .trust-row {
   display: flex;
   flex-wrap: wrap;

@@ -21,7 +21,7 @@ Enquanto ela estiver vazia, o quiz funciona, mas nenhum lead é salvo.
 
 ```js
 const HEADERS = [
-  'Data', 'E-mail', 'WhatsApp', 'Link WhatsApp', 'Perfil',
+  'Data', 'Nome', 'E-mail', 'WhatsApp', 'Link WhatsApp', 'Perfil',
   'P1', 'P2', 'P3', 'P4', 'P5', 'P6',
   'utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'Página'
 ];
@@ -39,6 +39,7 @@ function doPost(e) {
 
   sheet.appendRow([
     new Date(),
+    d.name || '',
     d.email || '',
     phone,
     phone ? 'https://wa.me/' + waPhone : '',

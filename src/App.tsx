@@ -37,7 +37,7 @@ const LOGO_SRC = "/logo-horizontal.webp";
 
 // URL do Apps Script que grava os leads na planilha (ver docs/leads-google-sheets.md).
 // Vazio = o quiz funciona normalmente, mas não salva os leads.
-const LEADS_WEBHOOK_URL = "";
+const LEADS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbz4_-MmYYoDbOfSzq748pUeRI1v8lNMOBVzfl_GLlOHeCQALI4FjRtCq0S-1KOt54cP/exec";
 
 const SCREENSHOTS = [
   "https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp",
@@ -70,8 +70,9 @@ const checkoutHref = () => {
 const QUIZ_QUESTIONS = [
   {
     id: 'q1',
-    headline: "Em média, quantos pacientes você atende (ou planeja atender) por mês?",
-    subheadline: "Considere retornos e primeiras consultas.",
+    image: "/quiz/q1.webp",
+    headline: "Quantos pacientes você atende (ou quer atender) por mês?",
+    subheadline: "Cada um é avaliação, dieta e retorno que saem do seu tempo.",
     options: [
       { id: 'a', label: "A) 1 a 10 pacientes." },
       { id: 'b', label: "B) 11 a 30 pacientes." },
@@ -81,35 +82,39 @@ const QUIZ_QUESTIONS = [
   },
   {
     id: 'q2',
-    headline: "Como funciona a sua etapa antes de o paciente sentar na sua frente (Agendamento e Anamnese)?",
+    image: "/quiz/q2.webp",
+    headline: "Como o paciente chega até a sua consulta hoje?",
     options: [
-      { id: 'a', label: "A) Tudo via WhatsApp e papel: perco tempo e pacientes às vezes faltam sem avisar." },
-      { id: 'b', label: "B) Uso um sistema, mas a anamnese ainda é longa e feita na hora da consulta." },
-      { id: 'c', label: "C) Meu sistema atual tem essas funções, mas acho confuso e os pacientes não engajam." }
+      { id: 'a', label: "A) No WhatsApp e no papel: perco tempo e paciente falta sem avisar." },
+      { id: 'b', label: "B) Tenho sistema, mas a anamnese ainda come minutos da consulta." },
+      { id: 'c', label: "C) Pago um sistema cheio de função, mas é confuso e eu mal uso." }
     ]
   },
   {
     id: 'q3',
-    headline: "Durante ou logo após a consulta, qual destas tarefas mais esgota sua energia?",
+    image: "/quiz/q3.webp",
+    headline: "O que mais rouba o seu tempo depois da consulta?",
     options: [
-      { id: 'a', label: "A) Registrar a antropometria e gerar gráficos de evolução claros." },
-      { id: 'b', label: "B) Montar o cardápio do zero e calcular macros manualmente." },
-      { id: 'c', label: "C) O processo inteiro demora porque uso planilhas soltas e calculadoras online." },
-      { id: 'd', label: "D) Sou rápido nisso, meu problema é só o preço alto do software que uso." }
+      { id: 'a', label: "A) Passar as dobras pra planilha e montar o gráfico de evolução." },
+      { id: 'b', label: "B) Montar o cardápio do zero e calcular macro na mão." },
+      { id: 'c', label: "C) Pular entre planilha, calculadora e PDF pra fechar tudo." },
+      { id: 'd', label: "D) Sou rápido. Meu problema é o preço do software que eu pago." }
     ]
   },
   {
     id: 'q4',
-    headline: "Sendo muito sincero: se você somar 12 meses, quanto você gasta por ANO com softwares de nutrição hoje?",
+    image: "/quiz/q4.webp",
+    headline: "Seja sincero: quanto você paga POR ANO em software de nutrição?",
     options: [
-      { id: 'a', label: "A) R$ 0 (Uso planilhas gratuitas, mas perco muito tempo)." },
+      { id: 'a', label: "A) R$ 0. Uso planilha e pago com o meu tempo." },
       { id: 'b', label: "B) Entre R$ 500 e R$ 1.200 por ano." },
-      { id: 'c', label: "C) Mais de R$ 1.500 por ano (Sinto que estou pagando um aluguel sem fim)." }
+      { id: 'c', label: "C) Mais de R$ 1.500 por ano, e isso nunca acaba." }
     ]
   },
   {
     id: 'q5',
-    headline: "Se você não precisasse mais pagar mensalidades caras (ou se tivesse as horas livres que perde no Excel), qual seria sua prioridade para o consultório?",
+    image: "/quiz/q5.webp",
+    headline: "Se esse dinheiro (ou essas horas) voltasse pra você, onde iria primeiro?",
     options: [
       { id: 'a', label: "A) Investiria em tráfego pago para captar mais pacientes." },
       { id: 'b', label: "B) Melhoraria o marketing e a identidade visual do meu negócio." },
@@ -119,11 +124,12 @@ const QUIZ_QUESTIONS = [
   },
   {
     id: 'q6',
-    headline: "Se existisse uma plataforma profissional, focada nos 4 pilares essenciais e que cobrasse apenas UMA VEZ na vida (sem pegadinhas)... qual seria sua reação?",
+    image: "/quiz/q6.webp",
+    headline: "E se você pagasse UMA vez e nunca mais visse mensalidade na fatura?",
     options: [
       { id: 'a', label: "A) Eu trocaria de software hoje mesmo." },
       { id: 'b', label: "B) Eu finalmente abandonaria o papel e as planilhas." },
-      { id: 'c', label: "C) Eu precisaria ver a interface e como funciona antes de decidir." }
+      { id: 'c', label: "C) Eu precisaria ver funcionando antes de decidir." }
     ]
   }
 ];
@@ -248,6 +254,7 @@ const DemoVideo = () => {
 export default function App() {
   const [scene, setScene] = useState(0);
   const [answers, setAnswers] = useState({});
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState(false);
@@ -317,6 +324,7 @@ export default function App() {
 
     const params = new URLSearchParams(window.location.search);
     const payload = {
+      name: name.trim(),
       email: email.trim(),
       phone: phone.replace(/\D/g, ''),
       profile: calculateProfile(),
@@ -342,7 +350,7 @@ export default function App() {
       setPhoneError(true);
       return;
     }
-    if (email.includes('@')) {
+    if (name.trim().length >= 2 && email.includes('@')) {
       sendLead();
       // E-mail e telefone vão para a Meta pela correspondência avançada automática (ligada no pixel)
       track('Lead', { content_name: 'Diagnóstico BodyComp' });
@@ -430,25 +438,26 @@ export default function App() {
             >
               <span className="eyebrow"><Sparkles size={14} /> Diagnóstico gratuito</span>
               <h1 className="title">
-                Descubra o que está <span className="hl">travando o lucro</span> do seu consultório
+                Você está pagando <span className="hl">aluguel</span> pelo seu próprio consultório?
               </h1>
               <p className="lead" style={{ marginTop: 12 }}>
-                Responda 6 perguntas rápidas e veja se você está operando no verde ou deixando dinheiro na mesa todo mês.
+                Mensalidade de software, planilha solta e dieta montada na mão comem seu lucro e seu tempo. Responda 6 perguntas e veja quanto isso já te custou.
               </p>
 
-              <div className="hero-shot" aria-hidden="true">
-                <div className="hero-shot-bar"><span></span><span></span><span></span></div>
-                <img src={SCREENSHOTS[0]} alt="" width="1920" height="1080" fetchPriority="high" />
+              <div className="hero-photo">
+                <img src="/quiz/inicio.webp" alt="Nutricionista frustrada com papéis, planilhas e cobranças no consultório" width="1200" height="670" fetchPriority="high" />
               </div>
 
               <button
                 className="btn-primary pulse"
                 onClick={() => {
                   track('QuizStart', {}, true);
+                  // pré-carrega as fotos das perguntas para a troca de tela não piscar
+                  QUIZ_QUESTIONS.forEach((q) => { const img = new Image(); img.src = q.image; });
                   setScene(1);
                 }}
               >
-                Começar meu diagnóstico <ArrowRight size={20} />
+                Quero ver meu diagnóstico <ArrowRight size={20} />
               </button>
 
               <div className="trust-row">
@@ -472,7 +481,7 @@ export default function App() {
               <div className="insight-icon"><Lightbulb size={28} /></div>
               <span className="eyebrow">Você sabia?</span>
               <p className="question" style={{ fontWeight: 700 }}>
-                A maioria dos nutricionistas gasta, em 3 anos, o equivalente a um equipamento de ponta só pagando "aluguel" de software que subutiliza.
+                Uma assinatura de R$ 100 por mês custa R$ 3.600 em 3 anos. E se você parar de pagar, perde o acesso a tudo o que construiu. Isso não é ferramenta: é aluguel.
               </p>
               <div className="timer-track"><div className="timer-fill"></div></div>
             </motion.section>
@@ -488,6 +497,9 @@ export default function App() {
               exit="exit"
               className="card"
             >
+              <div className="question-photo">
+                <img src={question.image} alt="" width="960" height="536" />
+              </div>
               <h2 className="question">{question.headline}</h2>
               {question.subheadline && <p className="muted" style={{ marginTop: 6 }}>{question.subheadline}</p>}
 
@@ -540,6 +552,21 @@ export default function App() {
               </div>
 
               <form onSubmit={handleLeadSubmit} noValidate={false}>
+                <div className="field">
+                  <label htmlFor="lead-name">Seu nome</label>
+                  <input
+                    id="lead-name"
+                    type="text"
+                    name="name"
+                    autoComplete="given-name"
+                    className="email-input"
+                    placeholder="Como você se chama?"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    minLength={2}
+                    required
+                  />
+                </div>
                 <div className="field">
                   <label htmlFor="lead-email">Seu melhor e-mail</label>
                   <input
@@ -622,7 +649,7 @@ export default function App() {
             >
               {/* Diagnóstico */}
               <section className="card">
-                <span className="eyebrow">Seu diagnóstico</span>
+                <span className="eyebrow">{name.trim() ? `${name.trim().split(/\s+/)[0]}, este é o seu diagnóstico` : 'Seu diagnóstico'}</span>
                 <h1 className="title" style={{ fontSize: 'clamp(1.45rem, 5vw, 2rem)' }}>{diagnosis.title}</h1>
                 <ul className="diagnosis-list">
                   {diagnosis.points.map((point, idx) => (
