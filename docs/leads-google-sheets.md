@@ -51,9 +51,55 @@ function doPost(e) {
     d.page || ''
   ]);
 
+  // Aviso por e-mail para o dono da planilha. Fica depois do appendRow: se o e-mail falhar, o lead já está salvo.
+  try {
+    avisarNovoLead(d, phone, waPhone, answers, ss.getUrl());
+  } catch (err) {
+    console.error('Falha ao enviar o aviso de lead', err);
+  }
+
   return ContentService.createTextOutput('ok');
 }
+
+const PERGUNTAS = ['Pacientes por mês', 'Como organiza hoje', 'O que mais toma tempo', 'Gasto com software', 'Onde investiria', 'Decisão'];
+const semLetra = (s) => String(s || '').replace(/^[A-D]\)\s*/, '');
+const escapar = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+function avisarNovoLead(d, phone, waPhone, answers, planilhaUrl) {
+  const nome = d.name || 'Sem nome';
+  const respostas = PERGUNTAS.map((p, i) => '<li><b>' + p + ':</b> ' + escapar(semLetra(answers[i])) + '</li>').join('');
+  const botao = (href, texto, cor) => '<a href="' + href + '" style="display:inline-block;margin:6px 8px 6px 0;padding:12px 18px;border-radius:999px;background:' + cor + ';color:#fff;text-decoration:none;font-weight:bold">' + texto + '</a>';
+  const html =
+    '<div style="font-family:Arial,sans-serif;font-size:15px;color:#12201b">' +
+    '<h2 style="margin:0 0 8px">Novo lead no quiz 🎉</h2>' +
+    '<p style="margin:0 0 4px"><b>' + escapar(nome) + '</b> · ' + escapar(d.profile === 'A' ? 'paga software' : 'usa planilha') + '</p>' +
+    '<p style="margin:0 0 12px">WhatsApp: ' + escapar(phone) + ' · E-mail: ' + escapar(d.email) + '</p>' +
+    (phone ? botao('https://wa.me/' + waPhone, 'Chamar no WhatsApp', '#25a35a') : '') +
+    botao(planilhaUrl, 'Abrir a planilha', '#006c4d') +
+    '<ul style="padding-left:18px">' + respostas + '</ul>' +
+    '<p style="color:#5c6b64;font-size:13px">Anúncio: ' + escapar(d.utm_content || 'sem UTM') + ' · ' + escapar(d.utm_term || '') + '</p>' +
+    '</div>';
+  MailApp.sendEmail({
+    to: Session.getEffectiveUser().getEmail(),
+    subject: '🔔 Novo lead: ' + nome + ' (' + semLetra(answers[0]) + ')',
+    htmlBody: html,
+    name: 'Quiz BodyComp'
+  });
+}
+
+// Rode esta função no editor (botão Executar) para receber um e-mail de teste sem mexer na planilha
+function testarAviso() {
+  avisarNovoLead(
+    { name: 'Teste do aviso', email: 'teste@exemplo.com', profile: 'B', utm_content: 'teste manual' },
+    '73999990000', '5573999990000',
+    ['A) 1 a 10 pacientes.', 'A) No WhatsApp e no papel.', 'B) Montar o cardápio do zero.', 'A) R$ 0.', 'A) Tráfego pago.', 'A) Trocaria hoje mesmo.'],
+    SpreadsheetApp.getActiveSpreadsheet().getUrl()
+  );
+}
 ```
+
+> O aviso vai para o e-mail da conta dona da planilha. Ao colar esta versão, o Google pede autorização para "enviar e-mail como você".
+> Publique sempre em **Implantar → Gerenciar implantações → editar (lápis) → Versão: Nova versão**. Uma implantação nova muda a URL e o quiz para de salvar os leads.
 
 ## Como usar os leads
 
