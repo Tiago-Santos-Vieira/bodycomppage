@@ -307,6 +307,30 @@ img { max-width: 100%; display: block; }
 .timer-track { height: 4px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 22px; }
 .timer-fill { height: 100%; background: var(--brand-light); animation: fill 4s linear forwards; }
 @keyframes fill { from { width: 0; } to { width: 100%; } }
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 12px 22px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--brand);
+  font: 700 1rem var(--font-display);
+  cursor: pointer;
+}
+
+/* ── Entradas de tela (CSS puro, sem biblioteca de animação) ───── */
+@keyframes enter { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+@keyframes enter-sm { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: none; } }
+.enter { animation: enter 0.45s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.enter-sm { animation: enter-sm 0.3s ease-out both; }
+.slide-up { animation: slide-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .enter, .enter-sm, .slide-up { animation: none; }
+}
 
 /* ── Formulário ─────────────────────────────────────────────────── */
 .locked-preview {

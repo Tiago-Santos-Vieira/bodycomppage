@@ -9,9 +9,9 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Otimizacao Critical Render Path: logo e print da tela de abertura (LCP) -->
+    <!-- Logo e foto da capa (o maior elemento da primeira tela) -->
     <link rel="preload" as="image" href="/logo-horizontal.webp" fetchpriority="high" />
-    <link rel="preload" as="image" href="https://i.postimg.cc/hPhmHg8G/Captura-de-tela-2026-05-07-175505.webp" fetchpriority="high" />
+    <link rel="preload" as="image" href="/quiz/inicio.webp" fetchpriority="high" />
 
     <!-- Mesmas fontes do software: Manrope (títulos) e Inter (texto) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,7 +27,8 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <!-- A primeira tela já vem pronta no HTML: aparece antes do JavaScript carregar e o React assume no lugar (mesma marcação da cena 0 do App.tsx) -->
+    <div id="root"><div class="bg-nodes"><div class="node"></div><div class="node"></div><div class="node"></div></div><main class="app-container"><div class="topbar" style="justify-content:center"><img src="/logo-horizontal.webp" alt="BodyComp - Nutrição Inteligente" class="brand-logo lg" width="405" height="96"></div><section class="card center"><span class="eyebrow"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"/><path d="M20 2v4"/><path d="M22 4h-4"/><circle cx="4" cy="20" r="2"/></svg> Diagnóstico gratuito</span><h1 class="title">Você está pagando <span class="hl">aluguel</span> pelo seu próprio consultório?</h1><p class="lead" style="margin-top:12px">Mensalidade de software, planilha solta e dieta montada na mão comem seu lucro e seu tempo. Responda 6 perguntas e veja quanto isso já te custou.</p><div class="hero-photo"><img src="/quiz/inicio.webp" alt="Nutricionista frustrada com papéis, planilhas e cobranças no consultório" width="1200" height="670" fetchpriority="high"></div><button class="btn-primary pulse" onclick="window.__quizClick=true">Quero ver meu diagnóstico <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button><div class="trust-row"><span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> 6 perguntas</span><span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6v6l4 2"/><circle cx="12" cy="12" r="10"/></svg> Menos de 1 minuto</span><span><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Resultado na hora</span></div></section></main></div>
     <script type="module" src="/src/main.tsx"></script>
     
     <!-- Meta Pixel: mesmo conjunto de dados que a Kiwify usa no checkout (Pixel Kiwify BodyCompp) -->

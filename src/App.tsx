@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   Calendar,
   ClipboardList,
@@ -56,6 +55,20 @@ const track = (event, params = {}, custom = false) => {
   if (typeof window.fbq !== 'function') return;
   window.fbq(custom ? 'trackCustom' : 'track', event, params);
 };
+
+// Funil do quiz: cada etapa dispara um evento próprio uma única vez por visita
+// (QuizStart → QuizP1…QuizP6 → QuizFormulario → Lead → ViewContent), para ver onde as pessoas saem.
+const trackedSteps = new Set();
+const trackStep = (event, params = {}) => {
+  if (trackedSteps.has(event)) return;
+  trackedSteps.add(event);
+  track(event, { ...params, origem: new URLSearchParams(window.location.search).get('utm_content') || '' }, true);
+};
+
+// A primeira tela já vem desenhada no index.html; ela só anima quando a pessoa volta para ela
+let firstWelcome = true;
+
+const MICRO_INSIGHT_MS = 3200;
 
 const checkoutHref = () => {
   const current = new URLSearchParams(window.location.search);
@@ -197,13 +210,6 @@ const FAQS = [
 
 const LOADING_MESSAGES = ['Analisando suas respostas...', 'Calculando horas perdidas...', 'Montando seu diagnóstico...'];
 
-// --- Animations ---
-const cardVariants = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 140, damping: 20 } },
-  exit: { opacity: 0, y: -16, transition: { duration: 0.2 } }
-};
-
 const stripLetter = (label) => label.replace(/^[A-D]\)\s*/, '');
 
 const BackgroundNodes = () => (
@@ -263,6 +269,7 @@ export default function App() {
   const [activeShot, setActiveShot] = useState(0);
   const [showStickyCta, setShowStickyCta] = useState(false);
   const offerRef = useRef(null);
+  const insightTimer = useRef(null);
 
   // Sobe para o topo a cada troca de tela (no celular a tela anterior podia ficar rolada)
   useEffect(() => {
@@ -285,6 +292,7 @@ export default function App() {
     if (scene === 9) {
       track('ViewContent', { content_name: 'BodyComp', value: 97.90, currency: 'BRL' });
     }
+    if (scene === 7) trackStep('QuizFormulario');
   }, [scene]);
 
   // Barra fixa de compra: aparece depois do diagnóstico e some quando a oferta está na tela
@@ -300,16 +308,33 @@ export default function App() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [scene]);
 
+  const startQuiz = () => {
+    firstWelcome = false;
+    trackStep('QuizStart');
+    // pré-carrega as fotos das perguntas para a troca de tela não piscar
+    QUIZ_QUESTIONS.forEach((q) => { const img = new Image(); img.src = q.image; });
+    setScene(1);
+  };
+
+  // Toque no botão da tela pronta do index.html antes do JavaScript carregar: começa assim que o app abre
+  useEffect(() => {
+    if (window.__quizClick) startQuiz();
+  }, []);
+
+  const finishInsight = () => {
+    clearTimeout(insightTimer.current);
+    setShowMicroInsight(false);
+    setScene(prev => prev + 1);
+  };
+
   const handleSelect = (questionId, optionId) => {
     setAnswers(prev => ({ ...prev, [questionId]: optionId }));
+    trackStep(`QuizP${QUIZ_QUESTIONS.findIndex(q => q.id === questionId) + 1}`, { resposta: optionId });
 
-    // Check if it's question 4 to show micro-insight
+    // Depois da pergunta 4 entra o "Você sabia?": passa sozinho ou no botão Continuar
     if (questionId === 'q4') {
       setTimeout(() => setShowMicroInsight(true), 250);
-      setTimeout(() => {
-        setShowMicroInsight(false);
-        setScene(prev => prev + 1);
-      }, 4250);
+      insightTimer.current = setTimeout(finishInsight, 250 + MICRO_INSIGHT_MS);
     } else {
       setTimeout(() => {
         setScene(prev => prev + 1);
@@ -348,6 +373,7 @@ export default function App() {
     const digits = phone.replace(/\D/g, '');
     if (digits.length < 10 || digits.length > 13) {
       setPhoneError(true);
+      track('QuizErroWhatsApp', { digitos: digits.length }, true);
       return;
     }
     if (name.trim().length >= 2 && email.includes('@')) {
@@ -424,17 +450,13 @@ export default function App() {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
+        <>
 
-          {/* SCENE 0: WELCOME */}
+          {/* SCENE 0: WELCOME (a mesma marcação está no index.html para aparecer antes do JavaScript) */}
           {scene === 0 && (
-            <motion.section
+            <section
               key="scene0"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="card center"
+              className={`card center${firstWelcome ? '' : ' enter'}`}
             >
               <span className="eyebrow"><Sparkles size={14} /> Diagnóstico gratuito</span>
               <h1 className="title">
@@ -448,15 +470,7 @@ export default function App() {
                 <img src="/quiz/inicio.webp" alt="Nutricionista frustrada com papéis, planilhas e cobranças no consultório" width="1200" height="670" fetchPriority="high" />
               </div>
 
-              <button
-                className="btn-primary pulse"
-                onClick={() => {
-                  track('QuizStart', {}, true);
-                  // pré-carrega as fotos das perguntas para a troca de tela não piscar
-                  QUIZ_QUESTIONS.forEach((q) => { const img = new Image(); img.src = q.image; });
-                  setScene(1);
-                }}
-              >
+              <button className="btn-primary pulse" onClick={startQuiz}>
                 Quero ver meu diagnóstico <ArrowRight size={20} />
               </button>
 
@@ -465,38 +479,27 @@ export default function App() {
                 <span><Clock size={16} /> Menos de 1 minuto</span>
                 <span><Check size={16} /> Resultado na hora</span>
               </div>
-            </motion.section>
+            </section>
           )}
 
           {/* MICRO-INSIGHT */}
           {showMicroInsight && (
-            <motion.section
-              key="micro-insight"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="card center"
-            >
+            <section key="micro-insight" className="card center enter">
               <div className="insight-icon"><Lightbulb size={28} /></div>
               <span className="eyebrow">Você sabia?</span>
               <p className="question" style={{ fontWeight: 700 }}>
                 Uma assinatura de R$ 100 por mês custa R$ 3.600 em 3 anos. E se você parar de pagar, perde o acesso a tudo o que construiu. Isso não é ferramenta: é aluguel.
               </p>
-              <div className="timer-track"><div className="timer-fill"></div></div>
-            </motion.section>
+              <div className="timer-track"><div className="timer-fill" style={{ animationDuration: `${MICRO_INSIGHT_MS}ms` }}></div></div>
+              <button type="button" className="btn-ghost" onClick={finishInsight}>
+                Continuar <ArrowRight size={18} />
+              </button>
+            </section>
           )}
 
           {/* SCENES 1-6: QUIZ QUESTIONS */}
           {isQuestion && (
-            <motion.section
-              key={`scene${scene}`}
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="card"
-            >
+            <section key={`scene${scene}`} className="card enter">
               <div className="question-photo">
                 <img src={question.image} alt="" width="960" height="536" />
               </div>
@@ -507,35 +510,26 @@ export default function App() {
                 {question.options.map((opt, idx) => {
                   const isSelected = answers[question.id] === opt.id;
                   return (
-                    <motion.button
+                    <button
                       key={opt.id}
                       type="button"
                       role="listitem"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                      className={`option-card ${isSelected ? 'selected' : ''}`}
+                      style={{ animationDelay: `${idx * 50}ms` }}
+                      className={`option-card enter-sm ${isSelected ? 'selected' : ''}`}
                       onClick={() => handleSelect(question.id, opt.id)}
                     >
                       <span className="option-letter">{isSelected ? <Check size={16} /> : opt.id.toUpperCase()}</span>
                       <span>{stripLetter(opt.label)}</span>
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
-            </motion.section>
+            </section>
           )}
 
           {/* SCENE 7: EMAIL CAPTURE */}
           {scene === 7 && (
-            <motion.section
-              key="scene7"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="card center"
-            >
+            <section key="scene7" className="card center enter">
               <span className="eyebrow"><Check size={14} /> Diagnóstico pronto</span>
               <h2 className="title" style={{ fontSize: 'clamp(1.45rem, 5vw, 1.9rem)' }}>
                 Descobrimos onde está o <span className="hl">vazamento</span> do seu consultório
@@ -605,48 +599,25 @@ export default function App() {
                 </button>
               </form>
               <p className="privacy-note"><Lock size={13} /> Seus dados ficam só com a BodyComp. Nada de spam.</p>
-            </motion.section>
+            </section>
           )}
 
           {/* SCENE 8: LOADING TRANSITION */}
           {scene === 8 && (
-            <motion.section
-              key="scene8"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="card center"
-            >
+            <section key="scene8" className="card center enter">
               <div className="loader-container">
                 <div className="spinner"></div>
                 <Logo />
-                <AnimatePresence mode="wait">
-                  <motion.p
-                    key={loadingStep}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.3 }}
-                    className="lead"
-                    style={{ fontWeight: 600, color: 'var(--brand)' }}
-                  >
-                    {LOADING_MESSAGES[loadingStep]}
-                  </motion.p>
-                </AnimatePresence>
+                <p key={loadingStep} className="lead enter-sm" style={{ fontWeight: 600, color: 'var(--brand)' }}>
+                  {LOADING_MESSAGES[loadingStep]}
+                </p>
               </div>
-            </motion.section>
+            </section>
           )}
 
           {/* SCENE 9: RESULT PAGE (PITCH) */}
           {scene === 9 && (
-            <motion.div
-              key="scene9"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              className="result-wrap"
-            >
+            <div key="scene9" className="result-wrap enter">
               {/* Diagnóstico */}
               <section className="card">
                 <span className="eyebrow">{name.trim() ? `${name.trim().split(/\s+/)[0]}, este é o seu diagnóstico` : 'Seu diagnóstico'}</span>
@@ -752,30 +723,22 @@ export default function App() {
                   <MessageCircle size={18} /> Falar no WhatsApp
                 </a>
               </section>
-            </motion.div>
+            </div>
           )}
 
-        </AnimatePresence>
+        </>
       </main>
 
       {/* Barra fixa de compra no celular */}
-      <AnimatePresence>
-        {scene === 9 && showStickyCta && (
-          <motion.div
-            className="sticky-cta"
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            exit={{ y: 100 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 28 }}
-          >
-            <div className="sticky-price">
-              <strong>R$ 97,90</strong>
-              <span>vitalício · 12x R$ 10,13</span>
-            </div>
-            <CheckoutButton>Quero meu acesso <ArrowRight size={18} /></CheckoutButton>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {scene === 9 && showStickyCta && (
+        <div className="sticky-cta slide-up">
+          <div className="sticky-price">
+            <strong>R$ 97,90</strong>
+            <span>vitalício · 12x R$ 10,13</span>
+          </div>
+          <CheckoutButton>Quero meu acesso <ArrowRight size={18} /></CheckoutButton>
+        </div>
+      )}
     </>
   );
 }
