@@ -261,7 +261,6 @@ export default function App() {
   const [scene, setScene] = useState(0);
   const [answers, setAnswers] = useState({});
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [phoneError, setPhoneError] = useState(false);
   const [showMicroInsight, setShowMicroInsight] = useState(false);
@@ -350,7 +349,7 @@ export default function App() {
     const params = new URLSearchParams(window.location.search);
     const payload = {
       name: name.trim(),
-      email: email.trim(),
+      email: '', // o formulário pede só nome e WhatsApp desde 2026-10-28; a coluna E-mail da planilha fica vazia
       phone: phone.replace(/\D/g, ''),
       profile: calculateProfile(),
       answers: QUIZ_QUESTIONS.map(q => q.options.find(o => o.id === answers[q.id])?.label || ''),
@@ -376,7 +375,7 @@ export default function App() {
       track('QuizErroWhatsApp', { digitos: digits.length }, true);
       return;
     }
-    if (name.trim().length >= 2 && email.includes('@')) {
+    if (name.trim().length >= 2) {
       sendLead();
       // E-mail e telefone vão para a Meta pela correspondência avançada automática (ligada no pixel)
       track('Lead', { content_name: 'Diagnóstico BodyComp' });
@@ -535,7 +534,7 @@ export default function App() {
                 Descobrimos onde está o <span className="hl">vazamento</span> do seu consultório
               </h2>
               <p className="lead" style={{ marginTop: 10 }}>
-                Diga para onde enviamos o seu diagnóstico. Se ficar alguma dúvida, você fala direto com a gente.
+                Falta só seu nome e WhatsApp para liberar o seu diagnóstico. Se ficar alguma dúvida, você fala direto com a gente.
               </p>
 
               <div className="locked-preview" aria-hidden="true">
@@ -558,20 +557,6 @@ export default function App() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     minLength={2}
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="lead-email">Seu melhor e-mail</label>
-                  <input
-                    id="lead-email"
-                    type="email"
-                    name="email"
-                    autoComplete="email"
-                    className="email-input"
-                    placeholder="voce@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
