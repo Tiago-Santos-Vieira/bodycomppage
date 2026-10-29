@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BodyComp | Software para nutricionistas sem mensalidade</title>
+  <meta name="description" content="Agenda, anamnese, avaliação física com 7 dobras e dieta pela Tabela TACO num só lugar. R$ 97,90 uma vez só, sem mensalidade, com 7 dias de garantia." />
+  <meta name="theme-color" content="#006c4d" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Courier+Prime:wght@400;700&display=swap" />
+  <style>
+    :root {
+      --page: #f2f6f3;
+      --ink: #12201b;
+      --ink-2: #3f4d47;
+      --ink-3: #5c6b64;
+      --line: #d9e3dd;
+      --brand: #006c4d;
+      --brand-deep: #00402e;
+      --mint: #3eb489;
+      --paper: #fffef9;
+      --red: #c62828;
+      --sans: "Manrope", system-ui, sans-serif;
+      --mono: "Courier Prime", "Courier New", monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { background: var(--page); color: var(--ink); font: 400 1.0625rem/1.6 var(--sans); }
+    img { display: block; max-width: 100%; height: auto; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid var(--mint); outline-offset: 3px; border-radius: 6px; }
+
+    .wrap { width: min(1120px, 100% - 32px); margin-inline: auto; }
+
+    /* ── Botão de compra ── */
+    .buy {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 58px; padding: 16px 30px; border-radius: 16px;
+      background: var(--brand); color: #fff; text-decoration: none;
+      font: 800 1.125rem/1.2 var(--sans);
+      box-shadow: 0 10px 24px rgba(0, 108, 77, 0.28);
+      transition: background 0.15s, transform 0.15s;
+    }
+    .buy:hover { background: #005a40; }
+    .buy:active { transform: translateY(1px); }
+    .buy-note { margin-top: 12px; color: var(--ink-3); font-size: 0.95rem; line-height: 1.5; }
+    .buy-note strong { color: var(--ink); }
+
+    /* ── Topo ── */
+    header.top { padding: 22px 0 0; }
+    header.top img { width: 168px; }
+
+    .hero { padding: 36px 0 72px; display: grid; gap: 48px; align-items: center; }
+    .hero > * { min-width: 0; }
+    .hero h1 { font: 800 clamp(2.6rem, 9vw, 4.6rem)/1.0 var(--sans); letter-spacing: -0.035em; max-width: 11ch; }
+    .hero h1 span { display: block; color: var(--brand); }
+    .hero .lead { margin-top: 20px; max-width: 34ch; color: var(--ink-2); font-size: 1.15rem; }
+    .hero .cta { margin-top: 30px; }
+
+    /* ── Recibo e ticket (o elemento da página) ── */
+    .bills { position: relative; display: flex; align-items: flex-start; justify-content: center; gap: 12px; min-height: 430px; }
+    .receipt {
+      position: relative; width: min(300px, 56vw); background: var(--paper);
+      font: 400 0.85rem/1.35 var(--mono); color: #2b322e;
+      padding: 22px 20px 30px; transform: rotate(-2.5deg);
+      filter: drop-shadow(0 18px 26px rgba(18, 32, 27, 0.16));
+      --tear: 10px;
+      -webkit-mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--tear)) no-repeat, conic-gradient(from -45deg at 50% 100%, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tear)) var(--tear) repeat-x;
+              mask: linear-gradient(#000 0 0) top / 100% calc(100% - var(--tear)) no-repeat, conic-gradient(from -45deg at 50% 100%, #0000, #000 1deg 89deg, #0000 90deg) bottom / calc(2 * var(--tear)) var(--tear) repeat-x;
+    }
+    .receipt .r-head { text-align: center; font-weight: 700; letter-spacing: 0.08em; }
+    .receipt .r-sub { text-align: center; color: #6b736f; font-size: 0.8rem; margin-top: 2px; }
+    .receipt hr { border: 0; border-top: 2px dashed #c9cfcb; margin: 12px 0; }
+    .receipt .row { display: flex; gap: 8px; }
+    .receipt .row span:nth-child(2) { flex: 1; border-bottom: 2px dotted #cfd5d1; transform: translateY(-5px); }
+    .receipt .gap { text-align: center; color: #8a918d; letter-spacing: 0.3em; }
+    .receipt .total { display: flex; justify-content: space-between; align-items: baseline; font-weight: 700; }
+    .receipt .total b { color: var(--red); font-size: 1.45rem; }
+    .stamp {
+      position: absolute; left: 50%; top: 52%; translate: -50% -50%; rotate: -14deg;
+      border: 4px solid rgba(198, 40, 40, 0.85); border-radius: 10px; padding: 6px 12px;
+      color: rgba(198, 40, 40, 0.9); font: 800 1.35rem/1 var(--sans); white-space: nowrap;
+      mix-blend-mode: multiply;
+    }
+    .ticket {
+      align-self: flex-end; width: min(170px, 30vw); margin-bottom: 30px;
+      background: var(--brand); color: #fff; border-radius: 14px; padding: 18px 16px;
+      transform: rotate(3deg); box-shadow: 0 16px 30px rgba(0, 64, 46, 0.3);
+      font-family: var(--mono);
+    }
+    .ticket small { display: block; font-size: 0.8rem; opacity: 0.85; }
+    .ticket strong { display: block; font: 800 clamp(1.35rem, 6vw, 1.9rem)/1.1 var(--sans); margin: 6px 0 4px; letter-spacing: -0.02em; }
+    .ticket .paid { display: inline-block; margin-top: 8px; padding: 3px 8px; border-radius: 6px; background: #fff; color: var(--brand); font-weight: 700; font-size: 0.8rem; }
+
+    /* uma única animação: o recibo é impresso e o ticket aparece no fim */
+    @media (prefers-reduced-motion: no-preference) {
+      .receipt { animation: print 2.2s steps(14, end) 0.3s both; }
+      .stamp { animation: stamp 0.35s cubic-bezier(0.3, 1.6, 0.6, 1) 2.6s both; }
+      .ticket { animation: ticket 0.5s cubic-bezier(0.2, 1.4, 0.5, 1) 3s both; }
+      @keyframes print { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+      @keyframes stamp { from { opacity: 0; scale: 1.8; } to { opacity: 1; scale: 1; } }
+      @keyframes ticket { from { opacity: 0; transform: translateY(24px) rotate(3deg); } to { opacity: 1; transform: rotate(3deg); } }
+    }
+
+    /* ── Seções ── */
+    section.block { padding: 72px 0; }
+    h2 { font: 800 clamp(1.8rem, 5.5vw, 2.6rem)/1.1 var(--sans); letter-spacing: -0.03em; max-width: 20ch; }
+    .intro { margin-top: 14px; max-width: 52ch; color: var(--ink-2); }
+
+    .feature { display: grid; gap: 22px; margin-top: 56px; align-items: center; }
+    .feature h3 { font: 800 1.45rem/1.2 var(--sans); letter-spacing: -0.02em; }
+    .feature p { margin-top: 10px; color: var(--ink-2); max-width: 44ch; }
+    .screen { border-radius: 14px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: 0 24px 50px rgba(18, 32, 27, 0.12); }
+    .screen .bar { display: flex; gap: 6px; padding: 10px 12px; background: #eef2ef; border-bottom: 1px solid var(--line); }
+    .screen .bar i { width: 10px; height: 10px; border-radius: 50%; background: #cfd8d3; }
+    .anywhere { margin-top: 56px; padding: 18px 20px; border-left: 4px solid var(--mint); background: #fff; color: var(--ink-2); border-radius: 0 12px 12px 0; max-width: 60ch; }
+
+    /* ── Comparação ── */
+    .compare { margin-top: 32px; width: 100%; max-width: 640px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    .compare th, .compare td { text-align: left; padding: 14px 12px; border-bottom: 1px solid var(--line); }
+    .compare th { font-weight: 700; color: var(--ink-3); font-size: 0.95rem; }
+    .compare td:nth-child(2) { color: var(--red); font-weight: 700; }
+    .compare td:nth-child(3) { color: var(--brand); font-weight: 800; }
+    .compare-note { margin-top: 12px; color: var(--ink-3); font-size: 0.9rem; }
+
+    /* ── Passos ── */
+    .steps { list-style: none; margin-top: 32px; display: grid; gap: 22px; counter-reset: s; max-width: 640px; }
+    .steps li { counter-increment: s; display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: start; }
+    .steps li::before { content: counter(s); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--brand); color: #fff; font-weight: 800; }
+    .steps strong { display: block; font-size: 1.1rem; }
+    .steps span { color: var(--ink-2); }
+
+    /* ── Garantia ── */
+    .guarantee { background: var(--brand-deep); color: #fff; }
+    .guarantee h2 { color: #fff; }
+    .guarantee p { margin-top: 14px; max-width: 50ch; color: rgba(255, 255, 255, 0.85); }
+
+    /* ── Perguntas ── */
+    .faq { margin-top: 28px; max-width: 720px; }
+    .faq details { border-bottom: 1px solid var(--line); }
+    .faq summary { cursor: pointer; list-style: none; padding: 18px 0; font-weight: 700; font-size: 1.05rem; display: flex; justify-content: space-between; gap: 16px; }
+    .faq summary::-webkit-details-marker { display: none; }
+    .faq summary::after { content: "+"; color: var(--brand); font-size: 1.4rem; line-height: 1; }
+    .faq details[open] summary::after { content: "−"; }
+    .faq details p { padding: 0 0 18px; color: var(--ink-2); max-width: 60ch; }
+
+    /* ── Fim ── */
+    .final { text-align: center; padding: 80px 0 96px; }
+    .final h2 { margin-inline: auto; }
+    .final .price { margin-top: 14px; color: var(--ink-2); }
+    .final .cta { margin-top: 28px; }
+    footer { border-top: 1px solid var(--line); padding: 28px 0 40px; color: var(--ink-3); font-size: 0.9rem; }
+    footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+    footer img { width: 130px; }
+
+    @media (min-width: 880px) {
+      .hero { grid-template-columns: 1.05fr 1fr; padding: 56px 0 96px; }
+      .bills { min-height: 520px; gap: 18px; }
+      .receipt { width: 320px; font-size: 0.95rem; }
+      .ticket { width: 180px; }
+      .feature { grid-template-columns: 1.35fr 1fr; gap: 48px; }
+      .feature.flip { grid-template-columns: 1fr 1.35fr; }
+      .feature.flip .screen { order: 2; }
+      section.block { padding: 96px 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap"><img src="/logo-horizontal.webp" alt="BodyComp - Nutrição Inteligente" width="405" height="96" /></div>
+  </header>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <h1>Pague uma vez. <span>Use para sempre.</span></h1>
+        <p class="lead">O BodyComp junta agenda, anamnese, avaliação física e dieta pela Tabela TACO num só lugar. Sem mensalidade: R$ 97,90 e o sistema é seu.</p>
+        <div class="cta">
+          <a class="buy" data-checkout href="https://pay.kiwify.com.br/chRzTuK">Comprar por R$ 97,90</a>
+          <p class="buy-note">Ou <strong>12x de R$ 10,13</strong> no cartão. Pix e boleto também.<br />7 dias de garantia: se não servir, você recebe tudo de volta.</p>
+        </div>
+      </div>
+
+      <div class="bills" aria-label="Comparação: uma assinatura de R$ 100 por mês soma R$ 3.600 em 3 anos; o BodyComp custa R$ 97,90 uma vez só">
+        <div class="receipt" aria-hidden="true">
+          <div class="r-head">ASSINATURA DE SOFTWARE</div>
+          <div class="r-sub">cobrança mensal recorrente</div>
+          <hr />
+          <div class="row"><span>Mês 01</span><span></span><span>R$ 100,00</span></div>
+          <div class="row"><span>Mês 02</span><span></span><span>R$ 100,00</span></div>
+          <div class="row"><span>Mês 03</span><span></span><span>R$ 100,00</span></div>
+          <div class="row"><span>Mês 04</span><span></span><span>R$ 100,00</span></div>
+          <div class="gap">· · ·</div>
+          <div class="row"><span>Mês 35</span><span></span><span>R$ 100,00</span></div>
+          <div class="row"><span>Mês 36</span><span></span><span>R$ 100,00</span></div>
+          <hr />
+          <div class="total"><span>3 ANOS</span><b>R$ 3.600</b></div>
+          <div class="stamp">NUNCA É SEU</div>
+        </div>
+        <div class="ticket" aria-hidden="true">
+          <small>BodyComp</small>
+          <strong>R$ 97,90</strong>
+          <small>uma vez só</small>
+          <span class="paid">VITALÍCIO</span>
+        </div>
+      </div>
+    </div>
+
+    <section class="block">
+      <div class="wrap">
+        <h2>O sistema por dentro</h2>
+        <p class="intro">Estas são telas reais do BodyComp. Tudo o que a rotina do consultório pede, sem funções que você nunca vai usar.</p>
+
+        <div class="feature">
+          <div class="screen"><div class="bar"><i></i><i></i><i></i></div><img src="/lp/img/dieta.webp" alt="Tela do plano alimentar do BodyComp com refeições, calorias e macronutrientes" width="1280" height="766" loading="lazy" /></div>
+          <div>
+            <h3>Dieta montada pela Tabela TACO</h3>
+            <p>Escolha o alimento e a medida caseira (colher, concha, escumadeira). Calorias, macros por refeição e g/kg aparecem na hora. Depois é só imprimir o plano para o paciente.</p>
+          </div>
+        </div>
+
+        <div class="feature flip">
+          <div class="screen"><div class="bar"><i></i><i></i><i></i></div><img src="/lp/img/avaliacao.webp" alt="Tela de resultado da avaliação física com percentual de gordura, massa magra, IMC e taxa metabólica" width="1280" height="766" loading="lazy" /></div>
+          <div>
+            <h3>Avaliação física com 7 dobras</h3>
+            <p>Lance as dobras e a perimetria. O percentual de gordura, a massa magra, o IMC e a taxa metabólica basal saem calculados, com gráficos de evolução a cada retorno.</p>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="screen"><div class="bar"><i></i><i></i><i></i></div><img src="/lp/img/agenda.webp" alt="Tela da agenda do BodyComp com o calendário do mês e os compromissos do dia" width="1280" height="766" loading="lazy" /></div>
+          <div>
+            <h3>Agenda e retornos</h3>
+            <p>Todas as consultas do mês num calendário só. Marque um retorno em segundos e veja os compromissos do dia sem procurar no WhatsApp.</p>
+          </div>
+        </div>
+
+        <div class="feature flip">
+          <div class="screen"><div class="bar"><i></i><i></i><i></i></div><img src="/lp/img/anamnese.webp" alt="Tela da anamnese completa do BodyComp" width="1280" height="766" loading="lazy" /></div>
+          <div>
+            <h3>Anamnese completa no prontuário</h3>
+            <p>Histórico clínico, medicamentos, alergias e intolerâncias, sono, intestino e hábitos. Fica salvo no prontuário de cada paciente e pronto para imprimir.</p>
+          </div>
+        </div>
+
+        <p class="anywhere">Funciona no navegador do computador e do celular. Não precisa instalar nada: é só entrar com seu login.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <h2>Quanto custa ao longo do tempo</h2>
+        <table class="compare">
+          <thead><tr><th>Tempo de uso</th><th>Assinatura de R$ 100/mês</th><th>BodyComp</th></tr></thead>
+          <tbody>
+            <tr><td>1 ano</td><td>R$ 1.200</td><td>R$ 97,90</td></tr>
+            <tr><td>2 anos</td><td>R$ 2.400</td><td>R$ 97,90</td></tr>
+            <tr><td>3 anos</td><td>R$ 3.600</td><td>R$ 97,90</td></tr>
+          </tbody>
+        </table>
+        <p class="compare-note">E se você parar de pagar a assinatura, perde o acesso. No BodyComp o acesso continua seu.</p>
+      </div>
+    </section>
+
+    <section class="block" style="padding-top: 0">
+      <div class="wrap">
+        <h2>Como você recebe o acesso</h2>
+        <ol class="steps">
+          <li><div><strong>Faça o pagamento na Kiwify</strong><span>Pix, cartão em até 12x ou boleto, numa página segura.</span></div></li>
+          <li><div><strong>Receba o login e a senha por e-mail</strong><span>No Pix e no cartão, o e-mail chega em poucos minutos.</span></div></li>
+          <li><div><strong>Entre e cadastre o primeiro paciente</strong><span>No computador ou no celular, no mesmo dia.</span></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="block guarantee">
+      <div class="wrap">
+        <h2>7 dias para testar com seus pacientes</h2>
+        <p>Use o BodyComp no consultório de verdade. Se em 7 dias ele não servir para você, peça o reembolso pela própria Kiwify e receba 100% do valor de volta.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <h2>Perguntas frequentes</h2>
+        <div class="faq">
+          <details><summary>Pago mensalidade depois?</summary><p>Não. Você paga R$ 97,90 uma única vez e o acesso é vitalício.</p></details>
+          <details><summary>Preciso instalar alguma coisa?</summary><p>Não. O BodyComp funciona no navegador do computador e do celular. É só entrar com seu login.</p></details>
+          <details><summary>Como recebo o acesso?</summary><p>Por e-mail, assim que o pagamento é aprovado. No Pix, a aprovação sai em poucos minutos.</p></details>
+          <details><summary>Os dados dos meus pacientes ficam seguros?</summary><p>Sim. Cada nutricionista entra com o próprio login e só vê os próprios pacientes. Ninguém mais tem acesso a eles.</p></details>
+          <details><summary>Tem receituário de fórmulas manipuladas?</summary><p>Ainda não. Hoje o foco é dieta, avaliação física, anamnese e agenda. Sugestões de novas funções são bem-vindas e entram nas próximas atualizações.</p></details>
+          <details><summary>E se eu não gostar?</summary><p>Você tem 7 dias de garantia. É só pedir o reembolso pela Kiwify e recebe 100% do valor de volta.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="final">
+      <div class="wrap">
+        <h2>Pare de pagar aluguel pelo seu software</h2>
+        <p class="price">R$ 97,90 uma vez só, ou 12x de R$ 10,13.</p>
+        <div class="cta">
+          <a class="buy" data-checkout href="https://pay.kiwify.com.br/chRzTuK">Comprar por R$ 97,90</a>
+          <p class="buy-note">7 dias de garantia. Acesso por e-mail logo após o pagamento.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <img src="/logo-horizontal.webp" alt="BodyComp" width="405" height="96" loading="lazy" />
+      <span>Dúvidas? <a href="https://wa.me/5573981579948?text=Oi!%20Vi%20a%20p%C3%A1gina%20do%20BodyComp%20e%20fiquei%20com%20uma%20d%C3%BAvida." target="_blank" rel="noopener">Fale com a gente no WhatsApp</a></span>
+    </div>
+  </footer>
+
+  <script>
+    // Leva a origem do anúncio (UTMs e fbclid) para o checkout, para a Kiwify e a Meta saberem de onde veio a venda
+    (function () {
+      var keys = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "src", "sck"];
+      var here = new URLSearchParams(location.search);
+      document.querySelectorAll("[data-checkout]").forEach(function (a) {
+        var url = new URL(a.href);
+        keys.forEach(function (k) { if (here.get(k)) url.searchParams.set(k, here.get(k)); });
+        a.href = url.toString();
+        a.addEventListener("click", function () {
+          if (window.fbq) fbq("trackCustom", "ClickCheckout", { pagina: "landing" });
+        });
+      });
+    })();
+  </script>
+
+  <!-- Meta Pixel (o mesmo do quiz e do checkout da Kiwify), carregado depois da primeira interação -->
+  <script>
+    !function(f){if(f.fbq)return;var n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[]}(window);
+    fbq('init', '26887854514238733');
+    fbq('track', 'PageView');
+    fbq('track', 'ViewContent', { content_name: 'BodyComp', value: 97.90, currency: 'BRL' });
+    function loadPixel() {
+      if (window.pixelLoaded) return;
+      window.pixelLoaded = true;
+      if (/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+      var s = document.createElement('script'); s.async = true; s.src = 'https://connect.facebook.net/en_US/fbevents.js'; document.body.appendChild(s);
+    }
+    ['scroll', 'touchstart', 'mousemove', 'click'].forEach(function (e) { addEventListener(e, loadPixel, { once: true }); });
+    setTimeout(loadPixel, 3000);
+  </script>
+  <noscript><img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=26887854514238733&ev=PageView&noscript=1" /></noscript>
+</body>
+</html>

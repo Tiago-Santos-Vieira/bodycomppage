@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "page.bodycomp.com.br" }],
+      "destination": "/lp/index.html"
+    }
+  ]
+}
